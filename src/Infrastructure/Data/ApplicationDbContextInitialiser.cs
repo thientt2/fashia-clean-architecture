@@ -69,14 +69,28 @@ public class ApplicationDbContextInitialiser
     {
         // Default roles
         var administratorRole = new IdentityRole(Roles.Administrator);
+        var branchManagerRole = new IdentityRole(Roles.BranchManager);
+        var customerRole = new IdentityRole(Roles.Customer);
 
         if (_roleManager.Roles.All(r => r.Name != administratorRole.Name))
         {
             await _roleManager.CreateAsync(administratorRole);
         }
 
+        if (_roleManager.Roles.All(r => r.Name != branchManagerRole.Name))
+        {
+            await _roleManager.CreateAsync(branchManagerRole);
+        }
+
+        if (_roleManager.Roles.All(r => r.Name != customerRole.Name))
+        {
+            await _roleManager.CreateAsync(customerRole);
+        }
+
         // Default users
         var administrator = new ApplicationUser { UserName = "administrator@localhost", Email = "administrator@localhost" };
+        var branchManager = new ApplicationUser { UserName = "branchmanager@localhost", Email = "branchmanager@localhost" };
+        var customer = new ApplicationUser { UserName = "customer@localhost", Email = "customer@localhost" };
 
         if (_userManager.Users.All(u => u.UserName != administrator.UserName))
         {
@@ -84,6 +98,24 @@ public class ApplicationDbContextInitialiser
             if (!string.IsNullOrWhiteSpace(administratorRole.Name))
             {
                 await _userManager.AddToRolesAsync(administrator, new [] { administratorRole.Name });
+            }
+        }
+
+        if (_userManager.Users.All(u => u.UserName != branchManager.UserName))
+        {
+            await _userManager.CreateAsync(branchManager, "BranchManager1!");
+            if (!string.IsNullOrWhiteSpace(branchManagerRole.Name))
+            {
+                await _userManager.AddToRolesAsync(branchManager, new [] { branchManagerRole.Name });
+            }
+        }
+
+        if (_userManager.Users.All(u => u.UserName != customer.UserName))
+        {
+            await _userManager.CreateAsync(customer, "Customer1!");
+            if (!string.IsNullOrWhiteSpace(customerRole.Name))
+            {
+                await _userManager.AddToRolesAsync(customer, new [] { customerRole.Name });
             }
         }
 
@@ -103,6 +135,15 @@ public class ApplicationDbContextInitialiser
                     new TodoItem { Title = "Reward yourself with a nice, long nap 🏆" },
                 }
             });
+
+            await _context.SaveChangesAsync();
+        }
+
+        if (!_context.Categories.Any())
+        {
+            _context.Categories.Add(new Category("Thời trang Nam", "Thời trang dành cho nam giới", null, null));
+            _context.Categories.Add(new Category("Thời trang Nữ", "Thời trang dành cho nữ giới", null, null));
+                      
 
             await _context.SaveChangesAsync();
         }

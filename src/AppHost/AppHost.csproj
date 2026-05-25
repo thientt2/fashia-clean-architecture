@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Fashia.AppHost</RootNamespace>
     <AssemblyName>Fashia.AppHost</AssemblyName>
+    <UserSecretsId>6cd2bde5-f820-4523-81c6-26352f5bc341</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

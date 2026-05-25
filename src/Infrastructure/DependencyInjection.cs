@@ -1,7 +1,10 @@
 ﻿using Fashia.Application.Common.Interfaces;
+using Fashia.Domain.Constants;
 using Fashia.Infrastructure.Data;
 using Fashia.Infrastructure.Data.Interceptors;
+using Fashia.Infrastructure.Email;
 using Fashia.Infrastructure.Identity;
+using Fashia.Infrastructure.Storage;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -27,11 +30,18 @@ public static class DependencyInjection
             options.ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
         });
 
+        builder.Services.Configure<SmtpOptions>(
+            builder.Configuration.GetSection(SmtpOptions.SectionName));
+
+        builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
+
         builder.EnrichNpgsqlDbContext<ApplicationDbContext>();
 
         builder.Services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
 
         builder.Services.AddScoped<ApplicationDbContextInitialiser>();
+
+        builder.Services.AddScoped<IFileStorageService, CloudinaryStorageService>();
 
         builder.Services.AddAuthentication(options =>
             {
@@ -40,7 +50,8 @@ public static class DependencyInjection
             })
             .AddIdentityCookies();
 
-        builder.Services.AddAuthorizationBuilder();
+        builder.Services.AddAuthorizationBuilder()
+        .AddPolicy(Policies.CanManageCategories, policy => policy.RequireRole(Roles.Administrator));
 
         builder.Services
             .AddIdentityCore<ApplicationUser>()

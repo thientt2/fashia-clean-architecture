@@ -37,7 +37,6 @@ app.MapScalarApiReference();
 
 app.UseExceptionHandler(options => { });
 
-
 app.MapDefaultEndpoints();
 app.MapEndpoints(typeof(Program).Assembly);
 
