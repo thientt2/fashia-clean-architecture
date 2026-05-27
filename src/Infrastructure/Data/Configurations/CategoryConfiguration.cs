@@ -9,22 +9,22 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
     public void Configure(EntityTypeBuilder<Category> builder)
     {
         builder.Property(x => x.Name)
-            .HasMaxLength(Category.MaxNameLength)
+            .HasMaxLength(200)
             .IsRequired();
 
         builder.Property(x => x.Description)
-            .HasMaxLength(Category.MaxDescriptionLength)
+            .HasMaxLength(1000)
             .IsRequired();
 
         builder.Property(x => x.Slug)
-            .HasMaxLength(Category.MaxSlugLength)
+            .HasMaxLength(200)
             .IsRequired();
 
         builder.HasIndex(x => x.Slug)
             .IsUnique();
 
         builder.Property(x => x.ImageUrl)
-            .HasMaxLength(Category.MaxImageUrlLength);
+            .HasMaxLength(500);
 
         builder.Property(x => x.IsActive)
             .IsRequired()

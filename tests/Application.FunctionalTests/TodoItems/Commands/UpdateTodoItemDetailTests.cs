@@ -12,7 +12,7 @@ public class UpdateTodoItemDetailTests : TestBase
     [Test]
     public async Task ShouldRequireValidTodoItemId()
     {
-        var command = new UpdateTodoItemCommand { Id = 99, Title = "New Title" };
+        var command = new UpdateTodoItemCommand { Id = 99, Name = "New Name" };
 
         await Should.ThrowAsync<NotFoundException>(() => TestApp.SendAsync(command));
     }
@@ -24,13 +24,13 @@ public class UpdateTodoItemDetailTests : TestBase
 
         var listId = await TestApp.SendAsync(new CreateTodoListCommand
         {
-            Title = "New List"
+            Name = "New List"
         });
 
         var itemId = await TestApp.SendAsync(new CreateTodoItemCommand
         {
             ListId = listId,
-            Title = "New Item"
+            Name = "New Item"
         });
 
         var command = new UpdateTodoItemDetailCommand

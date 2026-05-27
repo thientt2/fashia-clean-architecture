@@ -4,6 +4,7 @@ using Fashia.Domain.ValueObjects;
 using Fashia.Infrastructure.Identity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -144,6 +145,58 @@ public class ApplicationDbContextInitialiser
             _context.Categories.Add(new Category("Thời trang Nam", "Thời trang dành cho nam giới", null, null));
             _context.Categories.Add(new Category("Thời trang Nữ", "Thời trang dành cho nữ giới", null, null));
                       
+
+            await _context.SaveChangesAsync();
+        }
+
+        if (!_context.Brands.Any())
+        {
+            _context.Brands.Add(new Brand("Nike", "Thương hiệu thể thao nổi tiếng"));
+            _context.Brands.Add(new Brand("Adidas", "Thương hiệu thể thao nổi tiếng"));
+            _context.Brands.Add(new Brand("Zara", "Thương hiệu thời trang nổi tiếng"));
+            _context.Brands.Add(new Brand("H&M", "Thương hiệu thời trang nổi tiếng"));
+
+            await _context.SaveChangesAsync();
+        }
+
+        if (!_context.Attributes.Any())
+        {
+            _context.Attributes.Add(new ProductAttribute("Màu sắc"));
+            _context.Attributes.Add(new ProductAttribute("Kích thước"));
+            _context.Attributes.Add(new ProductAttribute("Chất liệu"));
+
+            await _context.SaveChangesAsync();
+        }
+
+        if (!_context.AttributeValues.Any())
+        {
+            var colorAttribute = await _context.Attributes.FirstOrDefaultAsync(a => a.Name == "Màu sắc");
+            var sizeAttribute = await _context.Attributes.FirstOrDefaultAsync(a => a.Name == "Kích thước");
+            var materialAttribute = await _context.Attributes.FirstOrDefaultAsync(a => a.Name == "Chất liệu");
+
+            if (colorAttribute != null)
+            {
+                _context.AttributeValues.Add(new ProductAttributeValue(colorAttribute.Id, "Đỏ", "#FF0000"));
+                _context.AttributeValues.Add(new ProductAttributeValue(colorAttribute.Id, "Xanh", "#00FF00"));
+                _context.AttributeValues.Add(new ProductAttributeValue(colorAttribute.Id, "Đen", "#000000"));
+                _context.AttributeValues.Add(new ProductAttributeValue(colorAttribute.Id, "Trắng", "#FFFFFF"));
+            }
+
+            if (sizeAttribute != null)
+            {
+                _context.AttributeValues.Add(new ProductAttributeValue(sizeAttribute.Id, "S"));
+                _context.AttributeValues.Add(new ProductAttributeValue(sizeAttribute.Id, "M"));
+                _context.AttributeValues.Add(new ProductAttributeValue(sizeAttribute.Id, "L"));
+                _context.AttributeValues.Add(new ProductAttributeValue(sizeAttribute.Id, "XL"));
+            }
+
+            if (materialAttribute != null)
+            {
+                _context.AttributeValues.Add(new ProductAttributeValue(materialAttribute.Id, "Cotton"));
+                _context.AttributeValues.Add(new ProductAttributeValue(materialAttribute.Id, "Polyester"));
+                _context.AttributeValues.Add(new ProductAttributeValue(materialAttribute.Id, "Leather"));
+                _context.AttributeValues.Add(new ProductAttributeValue(materialAttribute.Id, "Denim"));
+            }
 
             await _context.SaveChangesAsync();
         }

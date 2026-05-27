@@ -34,6 +34,8 @@ public static class DependencyInjection
             builder.Configuration.GetSection(SmtpOptions.SectionName));
 
         builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
+        builder.Services.AddSingleton<IEmailQueue, ChannelEmailQueue>();
+        builder.Services.AddHostedService<QueuedEmailSenderService>();
 
         builder.EnrichNpgsqlDbContext<ApplicationDbContext>();
 
@@ -51,7 +53,8 @@ public static class DependencyInjection
             .AddIdentityCookies();
 
         builder.Services.AddAuthorizationBuilder()
-        .AddPolicy(Policies.CanManageCategories, policy => policy.RequireRole(Roles.Administrator));
+        .AddPolicy(Policies.CanManageCategories, policy => policy.RequireRole(Roles.Administrator))
+        .AddPolicy(Policies.CanManageProducts, policy => policy.RequireRole(Roles.Administrator));  
 
         builder.Services
             .AddIdentityCore<ApplicationUser>()

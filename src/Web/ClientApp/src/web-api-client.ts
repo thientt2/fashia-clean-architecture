@@ -386,6 +386,303 @@ export class CategoriesClient {
     }
 }
 
+export class ProductsClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * Get all Products
+     * @return OK
+     */
+    getProducts(): Promise<ProductDto[]> {
+        let url_ = this.baseUrl + "/api/Products";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetProducts(_response);
+        });
+    }
+
+    protected processGetProducts(response: Response): Promise<ProductDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(ProductDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ProductDto[]>(null as any);
+    }
+
+    /**
+     * Create a new Product
+     * @param name (optional) 
+     * @param description (optional) 
+     * @param categoryId (optional) 
+     * @param brandId (optional) 
+     * @param image (optional) 
+     * @param variants (optional) 
+     * @return Created
+     */
+    createProduct(name: string | undefined, description: string | null | undefined, categoryId: number | undefined, brandId: number | undefined, image: Image2 | null | undefined, variants: string | undefined): Promise<number> {
+        let url_ = this.baseUrl + "/api/Products";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let content_ = "";
+        if (name === null)
+            throw new globalThis.Error("The parameter 'name' cannot be null.");
+        else if (name !== undefined)
+            content_ += encodeURIComponent("name") + "=" + encodeURIComponent("" + name) + "&";
+        if (description !== undefined)
+            content_ += encodeURIComponent("description") + "=" + encodeURIComponent("" + description) + "&";
+        if (categoryId === null)
+            throw new globalThis.Error("The parameter 'categoryId' cannot be null.");
+        else if (categoryId !== undefined)
+            content_ += encodeURIComponent("categoryId") + "=" + encodeURIComponent("" + categoryId) + "&";
+        if (brandId === null)
+            throw new globalThis.Error("The parameter 'brandId' cannot be null.");
+        else if (brandId !== undefined)
+            content_ += encodeURIComponent("brandId") + "=" + encodeURIComponent("" + brandId) + "&";
+        if (image !== undefined)
+            content_ += encodeURIComponent("image") + "=" + encodeURIComponent("" + image) + "&";
+        if (variants === null)
+            throw new globalThis.Error("The parameter 'variants' cannot be null.");
+        else if (variants !== undefined)
+            content_ += encodeURIComponent("variants") + "=" + encodeURIComponent("" + variants) + "&";
+        content_ = content_.replace(/&$/, "");
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "multipart/form-data",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateProduct(_response);
+        });
+    }
+
+    protected processCreateProduct(response: Response): Promise<number> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result201 = resultData201 !== undefined ? resultData201 : null as any;
+    
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result400 = resultData400 !== undefined ? resultData400 : null as any;
+    
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<number>(null as any);
+    }
+
+    /**
+     * Get Product by Id
+     * @return OK
+     */
+    getProductById(id: number): Promise<ProductDto> {
+        let url_ = this.baseUrl + "/api/Products/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetProductById(_response);
+        });
+    }
+
+    protected processGetProductById(response: Response): Promise<ProductDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ProductDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ProductDto>(null as any);
+    }
+
+    /**
+     * Update Product
+     * @return No Content
+     */
+    updateProduct(id: number, body: UpdateProductCommand): Promise<void> {
+        let url_ = this.baseUrl + "/api/Products/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateProduct(_response);
+        });
+    }
+
+    protected processUpdateProduct(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Delete Product
+     * @return No Content
+     */
+    deleteProduct(id: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/Products/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteProduct(_response);
+        });
+    }
+
+    protected processDeleteProduct(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+}
+
 export class TodoItemsClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -1707,6 +2004,74 @@ export interface ICreateCategoryRequest {
     [key: string]: any;
 }
 
+export class CreateProductRequest implements ICreateProductRequest {
+    name?: string;
+    description?: string | undefined;
+    categoryId?: number;
+    brandId?: number;
+    image?: Image2 | undefined;
+    variants?: string;
+
+    [key: string]: any;
+
+    constructor(data?: ICreateProductRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.categoryId = _data["categoryId"];
+            this.brandId = _data["brandId"];
+            this.image = _data["image"];
+            this.variants = _data["variants"];
+        }
+    }
+
+    static fromJS(data: any): CreateProductRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateProductRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["categoryId"] = this.categoryId;
+        data["brandId"] = this.brandId;
+        data["image"] = this.image;
+        data["variants"] = this.variants;
+        return data;
+    }
+}
+
+export interface ICreateProductRequest {
+    name?: string;
+    description?: string | undefined;
+    categoryId?: number;
+    brandId?: number;
+    image?: Image2 | undefined;
+    variants?: string;
+
+    [key: string]: any;
+}
+
 export class CreateTodoItemCommand implements ICreateTodoItemCommand {
     listId?: number;
     title?: string | undefined;
@@ -2110,6 +2475,7 @@ export interface ILoginRequest {
 export class LookupDto implements ILookupDto {
     id?: number;
     title?: string | undefined;
+    name?: string | undefined;
 
     [key: string]: any;
 
@@ -2130,6 +2496,7 @@ export class LookupDto implements ILookupDto {
             }
             this.id = _data["id"];
             this.title = _data["title"];
+            this.name = _data["name"];
         }
     }
 
@@ -2148,6 +2515,7 @@ export class LookupDto implements ILookupDto {
         }
         data["id"] = this.id;
         data["title"] = this.title;
+        data["name"] = this.name;
         return data;
     }
 }
@@ -2155,6 +2523,223 @@ export class LookupDto implements ILookupDto {
 export interface ILookupDto {
     id?: number;
     title?: string | undefined;
+    name?: string | undefined;
+
+    [key: string]: any;
+}
+
+export class ProductDto implements IProductDto {
+    id?: number;
+    name?: string;
+    description?: string;
+    imageUrl?: string | undefined;
+    category?: LookupDto;
+    brand?: LookupDto;
+    status?: string;
+    variants?: ProductVariantDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IProductDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.imageUrl = _data["imageUrl"];
+            this.category = _data["category"] ? LookupDto.fromJS(_data["category"]) : undefined as any;
+            this.brand = _data["brand"] ? LookupDto.fromJS(_data["brand"]) : undefined as any;
+            this.status = _data["status"];
+            if (Array.isArray(_data["variants"])) {
+                this.variants = [] as any;
+                for (let item of _data["variants"])
+                    this.variants!.push(ProductVariantDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): ProductDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ProductDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["imageUrl"] = this.imageUrl;
+        data["category"] = this.category ? this.category.toJSON() : undefined as any;
+        data["brand"] = this.brand ? this.brand.toJSON() : undefined as any;
+        data["status"] = this.status;
+        if (Array.isArray(this.variants)) {
+            data["variants"] = [];
+            for (let item of this.variants)
+                data["variants"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IProductDto {
+    id?: number;
+    name?: string;
+    description?: string;
+    imageUrl?: string | undefined;
+    category?: LookupDto;
+    brand?: LookupDto;
+    status?: string;
+    variants?: ProductVariantDto[];
+
+    [key: string]: any;
+}
+
+export class ProductVariantAttributeValueDto implements IProductVariantAttributeValueDto {
+    id?: number;
+    value?: string;
+    hexValue?: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IProductVariantAttributeValueDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.value = _data["value"];
+            this.hexValue = _data["hexValue"];
+        }
+    }
+
+    static fromJS(data: any): ProductVariantAttributeValueDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ProductVariantAttributeValueDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["value"] = this.value;
+        data["hexValue"] = this.hexValue;
+        return data;
+    }
+}
+
+export interface IProductVariantAttributeValueDto {
+    id?: number;
+    value?: string;
+    hexValue?: string | undefined;
+
+    [key: string]: any;
+}
+
+export class ProductVariantDto implements IProductVariantDto {
+    id?: number;
+    originalPrice?: number;
+    discountPercentage?: number;
+    stockQuantity?: number;
+    sellingPrice?: number;
+    attributeValues?: ProductVariantAttributeValueDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IProductVariantDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.originalPrice = _data["originalPrice"];
+            this.discountPercentage = _data["discountPercentage"];
+            this.stockQuantity = _data["stockQuantity"];
+            this.sellingPrice = _data["sellingPrice"];
+            if (Array.isArray(_data["attributeValues"])) {
+                this.attributeValues = [] as any;
+                for (let item of _data["attributeValues"])
+                    this.attributeValues!.push(ProductVariantAttributeValueDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): ProductVariantDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ProductVariantDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["originalPrice"] = this.originalPrice;
+        data["discountPercentage"] = this.discountPercentage;
+        data["stockQuantity"] = this.stockQuantity;
+        data["sellingPrice"] = this.sellingPrice;
+        if (Array.isArray(this.attributeValues)) {
+            data["attributeValues"] = [];
+            for (let item of this.attributeValues)
+                data["attributeValues"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IProductVariantDto {
+    id?: number;
+    originalPrice?: number;
+    discountPercentage?: number;
+    stockQuantity?: number;
+    sellingPrice?: number;
+    attributeValues?: ProductVariantAttributeValueDto[];
 
     [key: string]: any;
 }
@@ -2775,6 +3360,70 @@ export interface IUpdateCategoryCommand {
     [key: string]: any;
 }
 
+export class UpdateProductCommand implements IUpdateProductCommand {
+    name?: string;
+    description?: string | undefined;
+    imageUrl?: string | undefined;
+    categoryId?: number;
+    brandId?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IUpdateProductCommand) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.imageUrl = _data["imageUrl"];
+            this.categoryId = _data["categoryId"];
+            this.brandId = _data["brandId"];
+        }
+    }
+
+    static fromJS(data: any): UpdateProductCommand {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateProductCommand();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["imageUrl"] = this.imageUrl;
+        data["categoryId"] = this.categoryId;
+        data["brandId"] = this.brandId;
+        return data;
+    }
+}
+
+export interface IUpdateProductCommand {
+    name?: string;
+    description?: string | undefined;
+    imageUrl?: string | undefined;
+    categoryId?: number;
+    brandId?: number;
+
+    [key: string]: any;
+}
+
 export class UpdateTodoItemCommand implements IUpdateTodoItemCommand {
     id?: number;
     title?: string | undefined;
@@ -3047,6 +3696,50 @@ export class Image implements IImage {
 }
 
 export interface IImage {
+
+    [key: string]: any;
+}
+
+export class Image2 implements IImage2 {
+
+    [key: string]: any;
+
+    constructor(data?: IImage2) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+        }
+    }
+
+    static fromJS(data: any): Image2 {
+        data = typeof data === 'object' ? data : {};
+        let result = new Image2();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        return data;
+    }
+}
+
+export interface IImage2 {
 
     [key: string]: any;
 }

@@ -10,7 +10,7 @@ public class UpdateTodoItemTests : TestBase
     [Test]
     public async Task ShouldRequireValidTodoItemId()
     {
-        var command = new UpdateTodoItemCommand { Id = 99, Title = "New Title" };
+        var command = new UpdateTodoItemCommand { Id = 99, Name = "New Name" };
         await Should.ThrowAsync<NotFoundException>(() => TestApp.SendAsync(command));
     }
 
@@ -21,19 +21,19 @@ public class UpdateTodoItemTests : TestBase
 
         var listId = await TestApp.SendAsync(new CreateTodoListCommand
         {
-            Title = "New List"
+            Name = "New List"
         });
 
         var itemId = await TestApp.SendAsync(new CreateTodoItemCommand
         {
             ListId = listId,
-            Title = "New Item"
+            Name = "New Item"
         });
 
         var command = new UpdateTodoItemCommand
         {
             Id = itemId,
-            Title = "Updated Item Title"
+            Name = "Updated Item Name"
         };
 
         await TestApp.SendAsync(command);
@@ -41,7 +41,7 @@ public class UpdateTodoItemTests : TestBase
         var item = await TestApp.FindAsync<TodoItem>(itemId);
 
         item.ShouldNotBeNull();
-        item!.Title.ShouldBe(command.Title);
+        item!.Name.ShouldBe(command.Name);
         item.LastModifiedBy.ShouldNotBeNull();
         item.LastModifiedBy.ShouldBe(userId);
         item.LastModified.ShouldBe(DateTime.Now, TimeSpan.FromMilliseconds(10000));

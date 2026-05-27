@@ -4,11 +4,6 @@ namespace Fashia.Domain.Entities;
 
 public class Category : BaseAuditableEntity
 {
-    public const int MaxNameLength = 200;
-    public const int MaxDescriptionLength = 1000;
-    public const int MaxSlugLength = 250;
-    public const int MaxImageUrlLength = 500;
-
     private readonly List<Category> _children = new();
     private Category()
     {
@@ -94,22 +89,22 @@ public class Category : BaseAuditableEntity
 
         var value = name.Trim();
 
-        if (value.Length > MaxNameLength)
-            throw new ArgumentException($"Category name must not exceed {MaxNameLength} characters.", nameof(name));
+        if (value.Length > 200)
+            throw new ArgumentException("Category name must not exceed 200 characters.", nameof(name));
 
         Name = value;
         Slug = SlugGenerator.Generate(value);
 
-        if (Slug.Length > MaxSlugLength)
-            throw new ArgumentException($"Category slug must not exceed {MaxSlugLength} characters.", nameof(name));
+        if (Slug.Length > 250)
+            throw new ArgumentException("Category slug must not exceed 250 characters.", nameof(name));
     }
 
     private void SetDescription(string? description)
     {
         var value = description?.Trim() ?? string.Empty;
 
-        if (value.Length > MaxDescriptionLength)
-            throw new ArgumentException($"Category description must not exceed {MaxDescriptionLength} characters.", nameof(description));
+        if (value.Length > 1000)
+            throw new ArgumentException("Category description must not exceed 1000 characters.", nameof(description));
 
         Description = value;
     }
@@ -118,8 +113,8 @@ public class Category : BaseAuditableEntity
     {
         var value = imageUrl?.Trim();
 
-        if (!string.IsNullOrEmpty(value) && value.Length > MaxImageUrlLength)
-            throw new ArgumentException($"Category image URL must not exceed {MaxImageUrlLength} characters.", nameof(imageUrl));
+        if (!string.IsNullOrEmpty(value) && value.Length > 500)
+            throw new ArgumentException("Category image URL must not exceed 500 characters.", nameof(imageUrl));
 
         ImageUrl = string.IsNullOrWhiteSpace(value) ? null : value;
     }    

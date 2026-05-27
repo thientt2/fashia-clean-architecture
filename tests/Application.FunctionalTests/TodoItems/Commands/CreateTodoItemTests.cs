@@ -22,13 +22,13 @@ public class CreateTodoItemTests : TestBase
 
         var listId = await TestApp.SendAsync(new CreateTodoListCommand
         {
-            Title = "New List"
+            Name = "New List"
         });
 
         var command = new CreateTodoItemCommand
         {
             ListId = listId,
-            Title = "Tasks"
+            Name = "Tasks"
         };
 
         var itemId = await TestApp.SendAsync(command);
@@ -37,7 +37,7 @@ public class CreateTodoItemTests : TestBase
 
         item.ShouldNotBeNull();
         item!.ListId.ShouldBe(command.ListId);
-        item.Title.ShouldBe(command.Title);
+        item.Name.ShouldBe(command.Name);
         item.CreatedBy.ShouldBe(userId);
         item.Created.ShouldBe(DateTime.Now, TimeSpan.FromMilliseconds(10000));
         item.LastModifiedBy.ShouldBe(userId);

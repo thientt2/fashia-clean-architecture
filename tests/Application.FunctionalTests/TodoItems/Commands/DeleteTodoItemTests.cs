@@ -20,13 +20,13 @@ public class DeleteTodoItemTests : TestBase
     {
         var listId = await TestApp.SendAsync(new CreateTodoListCommand
         {
-            Title = "New List"
+            Name = "New List"
         });
 
         var itemId = await TestApp.SendAsync(new CreateTodoItemCommand
         {
             ListId = listId,
-            Title = "New Item"
+            Name = "New Item"
         });
 
         await TestApp.SendAsync(new DeleteTodoItemCommand(itemId));

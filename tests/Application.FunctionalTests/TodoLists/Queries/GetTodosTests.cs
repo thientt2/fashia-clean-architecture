@@ -25,17 +25,17 @@ public class GetTodosTests : TestBase
 
         await TestApp.AddAsync(new TodoList
         {
-            Title = "Shopping",
+            Name = "Shopping",
             Colour = Colour.Blue,
             Items =
                 {
-                    new TodoItem { Title = "Apples", Done = true },
-                    new TodoItem { Title = "Milk", Done = true },
-                    new TodoItem { Title = "Bread", Done = true },
-                    new TodoItem { Title = "Toilet paper" },
-                    new TodoItem { Title = "Pasta" },
-                    new TodoItem { Title = "Tissues" },
-                    new TodoItem { Title = "Tuna" }
+                    new TodoItem { Name = "Apples", Done = true },
+                    new TodoItem { Name = "Milk", Done = true },
+                    new TodoItem { Name = "Bread", Done = true },
+                    new TodoItem { Name = "Toilet paper" },
+                    new TodoItem { Name = "Pasta" },
+                    new TodoItem { Name = "Tissues" },
+                    new TodoItem { Name = "Tuna" }
                 }
         });
 

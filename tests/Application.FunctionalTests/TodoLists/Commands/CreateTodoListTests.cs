@@ -14,16 +14,16 @@ public class CreateTodoListTests : TestBase
     }
 
     [Test]
-    public async Task ShouldRequireUniqueTitle()
+    public async Task ShouldRequireUniqueName()
     {
         await TestApp.SendAsync(new CreateTodoListCommand
         {
-            Title = "Shopping"
+            Name = "Shopping"
         });
 
         var command = new CreateTodoListCommand
         {
-            Title = "Shopping"
+            Name = "Shopping"
         };
 
         await Should.ThrowAsync<ValidationException>(() => TestApp.SendAsync(command));
@@ -36,7 +36,7 @@ public class CreateTodoListTests : TestBase
 
         var command = new CreateTodoListCommand
         {
-            Title = "Tasks"
+            Name = "Tasks"
         };
 
         var id = await TestApp.SendAsync(command);
@@ -44,7 +44,7 @@ public class CreateTodoListTests : TestBase
         var list = await TestApp.FindAsync<TodoList>(id);
 
         list.ShouldNotBeNull();
-        list!.Title.ShouldBe(command.Title);
+        list!.Name.ShouldBe(command.Name);
         list.CreatedBy.ShouldBe(userId);
         list.Created.ShouldBe(DateTime.Now, TimeSpan.FromMilliseconds(10000));
     }

@@ -10,33 +10,33 @@ public class UpdateTodoListTests : TestBase
     [Test]
     public async Task ShouldRequireValidTodoListId()
     {
-        var command = new UpdateTodoListCommand { Id = 99, Title = "New Title" };
+        var command = new UpdateTodoListCommand { Id = 99, Name = "New Name" };
         await Should.ThrowAsync<NotFoundException>(() => TestApp.SendAsync(command));
     }
 
     [Test]
-    public async Task ShouldRequireUniqueTitle()
+    public async Task ShouldRequireUniqueName()
     {
         var listId = await TestApp.SendAsync(new CreateTodoListCommand
         {
-            Title = "New List"
+            Name = "New List"
         });
 
         await TestApp.SendAsync(new CreateTodoListCommand
         {
-            Title = "Other List"
+            Name = "Other List"
         });
 
         var command = new UpdateTodoListCommand
         {
             Id = listId,
-            Title = "Other List"
+            Name = "Other List"
         };
 
         var ex = await Should.ThrowAsync<ValidationException>(() => TestApp.SendAsync(command));
 
-        ex.Errors.ShouldContainKey("Title");
-        ex.Errors["Title"].ShouldContain("'Title' must be unique.");
+        ex.Errors.ShouldContainKey("Name");
+        ex.Errors["Name"].ShouldContain("'Name' must be unique.");
     }
 
     [Test]
@@ -46,13 +46,13 @@ public class UpdateTodoListTests : TestBase
 
         var listId = await TestApp.SendAsync(new CreateTodoListCommand
         {
-            Title = "New List"
+            Name = "New List"
         });
 
         var command = new UpdateTodoListCommand
         {
             Id = listId,
-            Title = "Updated List Title"
+            Name = "Updated List Name"
         };
 
         await TestApp.SendAsync(command);
@@ -60,7 +60,7 @@ public class UpdateTodoListTests : TestBase
         var list = await TestApp.FindAsync<TodoList>(listId);
 
         list.ShouldNotBeNull();
-        list!.Title.ShouldBe(command.Title);
+        list!.Name.ShouldBe(command.Name);
         list.LastModifiedBy.ShouldNotBeNull();
         list.LastModifiedBy.ShouldBe(userId);
         list.LastModified.ShouldBe(DateTime.Now, TimeSpan.FromMilliseconds(10000));

@@ -1,4 +1,5 @@
 using Fashia.Application.Common.Interfaces;
+using Fashia.Application.Common.Models;
 using Fashia.Domain.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -7,14 +8,14 @@ namespace Fashia.Application.Categories.EventHandlers;
 
 public class CategoryDeactivatedEventHandler : INotificationHandler<CategoryDeactivatedEvent>
 {
-    private readonly IEmailSender _emailSender;
+    private readonly IEmailQueue _emailQueue;
     private readonly ILogger<CategoryDeactivatedEventHandler> _logger;
 
     public CategoryDeactivatedEventHandler(
-        IEmailSender emailSender,
+        IEmailQueue emailQueue,
         ILogger<CategoryDeactivatedEventHandler> logger)
     {
-        _emailSender = emailSender;
+        _emailQueue = emailQueue;
         _logger = logger;
     }
 
@@ -23,16 +24,17 @@ public class CategoryDeactivatedEventHandler : INotificationHandler<CategoryDeac
         CancellationToken cancellationToken)
     {
         _logger.LogInformation(
-            "Sending email for deactivated category {CategoryId}",
+            "Queueing email for deactivated category {CategoryId}",
             notification.Category.Id);
 
-        await _emailSender.SendAsync(
+        var message = new EmailMessage(
             "tratatmatong@gmail.com",
-            $"Về việc thay đổi trạng thái của danh mục: {notification.Category.Name}",
+            $"Ve viec thay doi trang thai cua danh muc: {notification.Category.Name}",
             $"""
-            <h2>Danh mục {notification.Category.Name} đã bị vô hiệu hóa</h2>
-            <p><strong>Danh mục:</strong> {notification.Category.Name} sẽ không còn hoạt động. Các bạn có thể cập nhật thông tin hoặc liên hệ với quản trị viên để biết thêm chi tiết.</p>
-            """,
-            cancellationToken);
+            <h2>Danh muc {notification.Category.Name} da bi vo hieu hoa</h2>
+            <p><strong>Danh muc:</strong> {notification.Category.Name} se khong con hoat dong. Cac ban co the cap nhat thong tin hoac lien he voi quan tri vien de biet them chi tiet.</p>
+            """);
+
+        await _emailQueue.QueueAsync(message, cancellationToken);
     }
 }

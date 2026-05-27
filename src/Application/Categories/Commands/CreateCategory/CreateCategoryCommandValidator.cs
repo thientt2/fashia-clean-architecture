@@ -9,13 +9,13 @@ public class CreateCategoryCommandValidator : AbstractValidator<CreateCategoryCo
     {
         RuleFor(x => x.Name)
             .NotEmpty()
-            .MaximumLength(Category.MaxNameLength);
+            .MaximumLength(200);
 
         RuleFor(x => x.Description)
-            .MaximumLength(Category.MaxDescriptionLength);
+            .MaximumLength(1000);
 
         RuleFor(x => x.ImageUrl)
-            .MaximumLength(Category.MaxImageUrlLength);
+            .MaximumLength(500);
 
         RuleFor(x => x.ParentId)
             .GreaterThan(0)
