@@ -8,20 +8,14 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
 {
     public void Configure(EntityTypeBuilder<ProductVariant> builder)
     {
-        builder.Property(x => x.OriginalPrice)
-            .HasPrecision(18, 2)
-            .IsRequired();
+        builder.Property(x => x.OriginalPrice).HasPrecision(18, 2).IsRequired();
 
-        builder.Property(x => x.DiscountPercentage)
-            .HasPrecision(5, 2)
-            .IsRequired();
-
-        builder.Property(x => x.StockQuantity)
-            .IsRequired();
+        builder.Property(x => x.DiscountPercentage).HasPrecision(5, 2).IsRequired();
 
         builder.Ignore(x => x.SellingPrice);
 
-        builder.HasMany(x => x.AttributeValues)
+        builder
+            .HasMany(x => x.AttributeValues)
             .WithOne(x => x.ProductVariant)
             .HasForeignKey(x => x.ProductVariantId)
             .OnDelete(DeleteBehavior.Cascade);

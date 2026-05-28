@@ -11,8 +11,8 @@ public interface IApplicationDbContext
     DbSet<ProductAttribute> Attributes { get; }
     DbSet<ProductAttributeValue> AttributeValues { get; }
     DbSet<ProductVariantAttributeValue> VariantAttributeValues { get; }
-
-    DbSet<TodoList> TodoLists { get; }
-    DbSet<TodoItem> TodoItems { get; }
+    DbSet<Branch> Branches { get; }
+    DbSet<BranchVariantInventory> BranchVariantInventories { get; }
+    DbSet<InventoryTransaction> InventoryTransactions { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

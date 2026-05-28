@@ -6,6 +6,7 @@ namespace Fashia.Application.Products.Queries;
 public sealed record GetProductsQuery : IRequest<IReadOnlyCollection<ProductDto>>;
 
 public sealed record GetProductByIdQuery(int Id) : IRequest<ProductDto?>;
+
 public sealed class GetProductsQueryHandler
     : IRequestHandler<GetProductsQuery, IReadOnlyCollection<ProductDto>>
 {
@@ -18,10 +19,11 @@ public sealed class GetProductsQueryHandler
 
     public async Task<IReadOnlyCollection<ProductDto>> Handle(
         GetProductsQuery request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        return await _context.Products
-            .AsNoTracking()
+        return await _context
+            .Products.AsNoTracking()
             .OrderBy(x => x.Name)
             .Select(x => new ProductDto
             {
@@ -32,33 +34,31 @@ public sealed class GetProductsQueryHandler
                 Category = new LookupDto { Id = x.Category.Id, Name = x.Category.Name },
                 Brand = new LookupDto { Id = x.Brand.Id, Name = x.Brand.Name },
                 Status = x.Status.ToString(),
-                Variants = x.Variants
-                    .OrderBy(v => v.Id)
+                Variants = x
+                    .Variants.OrderBy(v => v.Id)
                     .Select(v => new ProductVariantDto
                     {
                         Id = v.Id,
                         OriginalPrice = v.OriginalPrice,
                         DiscountPercentage = v.DiscountPercentage,
-                        StockQuantity = v.StockQuantity,
                         SellingPrice = v.OriginalPrice * (1 - v.DiscountPercentage / 100),
-                        AttributeValues = v.AttributeValues
-                            .OrderBy(av => av.AttributeValue.Value)
+                        AttributeValues = v
+                            .AttributeValues.OrderBy(av => av.AttributeValue.Value)
                             .Select(av => new ProductVariantAttributeValueDto
                             {
                                 Id = av.AttributeValueId,
                                 Value = av.AttributeValue.Value,
-                                HexValue = av.AttributeValue.HexValue
+                                HexValue = av.AttributeValue.HexValue,
                             })
-                            .ToList()
+                            .ToList(),
                     })
-                    .ToList()
+                    .ToList(),
             })
             .ToListAsync(cancellationToken);
     }
 }
 
-public sealed class GetProductByIdQueryHandler
-    : IRequestHandler<GetProductByIdQuery, ProductDto?>
+public sealed class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, ProductDto?>
 {
     private readonly IApplicationDbContext _context;
 
@@ -69,10 +69,11 @@ public sealed class GetProductByIdQueryHandler
 
     public async Task<ProductDto?> Handle(
         GetProductByIdQuery request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        return await _context.Products
-            .AsNoTracking()
+        return await _context
+            .Products.AsNoTracking()
             .Where(x => x.Id == request.Id)
             .Select(x => new ProductDto
             {
@@ -83,26 +84,25 @@ public sealed class GetProductByIdQueryHandler
                 Category = new LookupDto { Id = x.Category.Id, Name = x.Category.Name },
                 Brand = new LookupDto { Id = x.Brand.Id, Name = x.Brand.Name },
                 Status = x.Status.ToString(),
-                Variants = x.Variants
-                    .OrderBy(v => v.Id)
+                Variants = x
+                    .Variants.OrderBy(v => v.Id)
                     .Select(v => new ProductVariantDto
                     {
                         Id = v.Id,
                         OriginalPrice = v.OriginalPrice,
                         DiscountPercentage = v.DiscountPercentage,
-                        StockQuantity = v.StockQuantity,
                         SellingPrice = v.OriginalPrice * (1 - v.DiscountPercentage / 100),
-                        AttributeValues = v.AttributeValues
-                            .OrderBy(av => av.AttributeValue.Value)
+                        AttributeValues = v
+                            .AttributeValues.OrderBy(av => av.AttributeValue.Value)
                             .Select(av => new ProductVariantAttributeValueDto
                             {
                                 Id = av.AttributeValueId,
                                 Value = av.AttributeValue.Value,
-                                HexValue = av.AttributeValue.HexValue
+                                HexValue = av.AttributeValue.HexValue,
                             })
-                            .ToList()
+                            .ToList(),
                     })
-                    .ToList()
+                    .ToList(),
             })
             .FirstOrDefaultAsync(cancellationToken);
     }

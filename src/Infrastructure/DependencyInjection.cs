@@ -18,20 +18,28 @@ public static class DependencyInjection
     public static void AddInfrastructureServices(this IHostApplicationBuilder builder)
     {
         var connectionString = builder.Configuration.GetConnectionString(Services.Database);
-        Guard.Against.Null(connectionString, message: $"Connection string '{Services.Database}' not found.");
+        Guard.Against.Null(
+            connectionString,
+            message: $"Connection string '{Services.Database}' not found."
+        );
 
         builder.Services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         builder.Services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
 
-        builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
-        {
-            options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-            options.UseNpgsql(connectionString);
-            options.ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
-        });
+        builder.Services.AddDbContext<ApplicationDbContext>(
+            (sp, options) =>
+            {
+                options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
+                options.UseNpgsql(connectionString);
+                options.ConfigureWarnings(warnings =>
+                    warnings.Ignore(RelationalEventId.PendingModelChangesWarning)
+                );
+            }
+        );
 
         builder.Services.Configure<SmtpOptions>(
-            builder.Configuration.GetSection(SmtpOptions.SectionName));
+            builder.Configuration.GetSection(SmtpOptions.SectionName)
+        );
 
         builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
         builder.Services.AddSingleton<IEmailQueue, ChannelEmailQueue>();
@@ -39,25 +47,43 @@ public static class DependencyInjection
 
         builder.EnrichNpgsqlDbContext<ApplicationDbContext>();
 
-        builder.Services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
+        builder.Services.AddScoped<IApplicationDbContext>(provider =>
+            provider.GetRequiredService<ApplicationDbContext>()
+        );
 
         builder.Services.AddScoped<ApplicationDbContextInitialiser>();
 
         builder.Services.AddScoped<IFileStorageService, CloudinaryStorageService>();
 
-        builder.Services.AddAuthentication(options =>
+        builder
+            .Services.AddAuthentication(options =>
             {
                 options.DefaultScheme = IdentityConstants.ApplicationScheme;
                 options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
             })
             .AddIdentityCookies();
 
-        builder.Services.AddAuthorizationBuilder()
-        .AddPolicy(Policies.CanManageCategories, policy => policy.RequireRole(Roles.Administrator))
-        .AddPolicy(Policies.CanManageProducts, policy => policy.RequireRole(Roles.Administrator));  
+        builder
+            .Services.AddAuthorizationBuilder()
+            .AddPolicy(
+                Policies.CanManageCategories,
+                policy => policy.RequireRole(Roles.Administrator)
+            )
+            .AddPolicy(
+                Policies.CanManageProducts,
+                policy => policy.RequireRole(Roles.Administrator)
+            )
+            .AddPolicy(
+                Policies.CanManageBranches,
+                policy => policy.RequireRole(Roles.Administrator)
+            )
+            .AddPolicy(
+                Policies.CanManageBranchInventories,
+                policy => policy.RequireRole(Roles.Administrator, Roles.BranchManager)
+            );
 
-        builder.Services
-            .AddIdentityCore<ApplicationUser>()
+        builder
+            .Services.AddIdentityCore<ApplicationUser>()
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddSignInManager()

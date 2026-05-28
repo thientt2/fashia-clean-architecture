@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <RootNamespace>Fashia.Infrastructure</RootNamespace>
     <AssemblyName>Fashia.Infrastructure</AssemblyName>
@@ -22,4 +21,9 @@
     <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Data\SeedData\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

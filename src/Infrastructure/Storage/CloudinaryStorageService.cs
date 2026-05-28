@@ -63,4 +63,36 @@ public class CloudinaryStorageService : IFileStorageService
         return result.SecureUrl?.ToString()
             ?? throw new InvalidOperationException("Cloudinary did not return a secure URL.");
     }
+
+    public async Task DeleteAsync(
+        string fileUrl,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(fileUrl))
+            return;
+
+        var uri = new Uri(fileUrl);
+
+        var segments = uri.AbsolutePath.Split('/');
+
+        var uploadIndex = Array.IndexOf(segments, "upload");
+
+        if (uploadIndex == -1)
+            return;
+
+        var publicIdSegments = segments
+            .Skip(uploadIndex + 2)
+            .ToArray();
+
+        var publicIdWithExtension = string.Join('/', publicIdSegments);
+
+        var publicId = Path.Combine(
+                Path.GetDirectoryName(publicIdWithExtension) ?? string.Empty,
+                Path.GetFileNameWithoutExtension(publicIdWithExtension))
+            .Replace("\\", "/");
+
+        var deleteParams = new DeletionParams(publicId);
+
+        await _cloudinary.DestroyAsync(deleteParams);
+    }
 }

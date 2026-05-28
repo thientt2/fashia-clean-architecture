@@ -1,5 +1,6 @@
 using Fashia.Application.Common.Interfaces;
 using Fashia.Application.Common.Models;
+using Fashia.Domain.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +16,8 @@ public class IdentityService : IIdentityService
     public IdentityService(
         UserManager<ApplicationUser> userManager,
         IUserClaimsPrincipalFactory<ApplicationUser> userClaimsPrincipalFactory,
-        IAuthorizationService authorizationService)
+        IAuthorizationService authorizationService
+    )
     {
         _userManager = userManager;
         _userClaimsPrincipalFactory = userClaimsPrincipalFactory;
@@ -29,13 +31,12 @@ public class IdentityService : IIdentityService
         return user?.UserName;
     }
 
-    public async Task<(Result Result, string UserId)> CreateUserAsync(string userName, string password)
+    public async Task<(Result Result, string UserId)> CreateUserAsync(
+        string userName,
+        string password
+    )
     {
-        var user = new ApplicationUser
-        {
-            UserName = userName,
-            Email = userName,
-        };
+        var user = new ApplicationUser { UserName = userName, Email = userName };
 
         var result = await _userManager.CreateAsync(user, password);
 
@@ -77,5 +78,25 @@ public class IdentityService : IIdentityService
         var result = await _userManager.DeleteAsync(user);
 
         return result.ToApplicationResult();
+    }
+
+    public async Task<int?> GetUserBranchIdAsync(string userId)
+    {
+        var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+        return user?.BranchId;
+    }
+
+    public async Task<bool> CanManageBranchAsync(string userId, int branchId)
+    {
+        if (await IsInRoleAsync(userId, Roles.Administrator))
+            return true;
+
+        if (!await IsInRoleAsync(userId, Roles.BranchManager))
+            return false;
+
+        var userBranchId = await GetUserBranchIdAsync(userId);
+
+        return userBranchId == branchId;
     }
 }

@@ -1,7 +1,6 @@
 using System.Runtime.CompilerServices;
 using AutoMapper;
 using Fashia.Application.Common.Interfaces;
-using Fashia.Application.TodoLists.Queries.GetTodos;
 using Fashia.Domain.Entities;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
@@ -20,9 +19,10 @@ public class MappingTests
         // Minimal logger factory for tests
         _loggerFactory = LoggerFactory.Create(b => b.AddDebug().SetMinimumLevel(LogLevel.Debug));
 
-        _configuration = new MapperConfiguration(cfg =>
-            cfg.AddMaps(typeof(IApplicationDbContext).Assembly),
-            loggerFactory: _loggerFactory);
+        _configuration = new MapperConfiguration(
+            cfg => cfg.AddMaps(typeof(IApplicationDbContext).Assembly),
+            loggerFactory: _loggerFactory
+        );
 
         _mapper = _configuration.CreateMapper();
     }
@@ -33,15 +33,15 @@ public class MappingTests
         _configuration!.AssertConfigurationIsValid();
     }
 
-    [Test]
-    [TestCase(typeof(TodoList), typeof(TodoListDto))]
-    [TestCase(typeof(TodoItem), typeof(TodoItemDto))]
-    public void ShouldSupportMappingFromSourceToDestination(Type source, Type destination)
-    {
-        var instance = GetInstanceOf(source);
+    // [Test]
+    // [TestCase(typeof(TodoList), typeof(TodoListDto))]
+    // [TestCase(typeof(TodoItem), typeof(TodoItemDto))]
+    // public void ShouldSupportMappingFromSourceToDestination(Type source, Type destination)
+    // {
+    //     var instance = GetInstanceOf(source);
 
-        _mapper!.Map(instance, source, destination);
-    }
+    //     _mapper!.Map(instance, source, destination);
+    // }
 
     private static object GetInstanceOf(Type type)
     {
@@ -51,7 +51,6 @@ public class MappingTests
         // Type without parameterless constructor
         return RuntimeHelpers.GetUninitializedObject(type);
     }
-
 
     [OneTimeTearDown]
     public void OneTimeTearDown()

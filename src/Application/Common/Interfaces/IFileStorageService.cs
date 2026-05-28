@@ -8,4 +8,8 @@ public interface IFileStorageService
         string contentType,
         string folder,
         CancellationToken cancellationToken);
+
+    Task DeleteAsync(
+        string fileUrl,
+        CancellationToken cancellationToken);
 }

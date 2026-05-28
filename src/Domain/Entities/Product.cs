@@ -14,7 +14,8 @@ public class Product : BaseAuditableEntity
         int categoryId,
         int brandId,
         string? description = null,
-        string? imageUrl = null)
+        string? imageUrl = null
+    )
     {
         SetName(name);
         SetCategory(categoryId);
@@ -84,15 +85,9 @@ public class Product : BaseAuditableEntity
         Status = ProductStatus.Inactive;
     }
 
-    public void AddVariant(
-        decimal originalPrice,
-        int stockQuantity,
-        IEnumerable<int> attributeValueIds)
+    public void AddVariant(decimal originalPrice, IEnumerable<int> attributeValueIds)
     {
-        var variant = new ProductVariant(
-            originalPrice,
-            stockQuantity,
-            attributeValueIds);
+        var variant = new ProductVariant(originalPrice, attributeValueIds);
 
         _variants.Add(variant);
     }
@@ -105,7 +100,10 @@ public class Product : BaseAuditableEntity
         var value = name.Trim();
 
         if (value.Length > 200)
-            throw new ArgumentException("Product name must not exceed 200 characters.", nameof(name));
+            throw new ArgumentException(
+                "Product name must not exceed 200 characters.",
+                nameof(name)
+            );
 
         Name = value;
     }
@@ -115,7 +113,10 @@ public class Product : BaseAuditableEntity
         var value = description?.Trim() ?? string.Empty;
 
         if (value.Length > 2000)
-            throw new ArgumentException("Product description must not exceed 2000 characters.", nameof(description));
+            throw new ArgumentException(
+                "Product description must not exceed 2000 characters.",
+                nameof(description)
+            );
 
         Description = value;
     }
@@ -125,7 +126,10 @@ public class Product : BaseAuditableEntity
         var value = imageUrl?.Trim();
 
         if (!string.IsNullOrEmpty(value) && value.Length > 500)
-            throw new ArgumentException("Product image URL must not exceed 500 characters.", nameof(imageUrl));
+            throw new ArgumentException(
+                "Product image URL must not exceed 500 characters.",
+                nameof(imageUrl)
+            );
 
         ImageUrl = string.IsNullOrWhiteSpace(value) ? null : value;
     }
