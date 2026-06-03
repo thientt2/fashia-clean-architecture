@@ -4,6 +4,24 @@ public class Product : BaseAuditableEntity
 {
     private readonly List<ProductVariant> _variants = new();
 
+    public string Name { get; private set; } = string.Empty;
+
+    public string Description { get; private set; } = string.Empty;
+
+    public string? ImageUrl { get; private set; }
+
+    public int CategoryId { get; private set; }
+
+    public Category Category { get; private set; } = null!;
+
+    public int BrandId { get; private set; }
+
+    public Brand Brand { get; private set; } = null!;
+
+    public ProductStatus Status { get; private set; }
+
+    public IReadOnlyCollection<ProductVariant> Variants => _variants.AsReadOnly();
+
     private Product()
     {
         // EF Core
@@ -25,24 +43,6 @@ public class Product : BaseAuditableEntity
 
         Status = ProductStatus.Active;
     }
-
-    public string Name { get; private set; } = string.Empty;
-
-    public string Description { get; private set; } = string.Empty;
-
-    public string? ImageUrl { get; private set; }
-
-    public int CategoryId { get; private set; }
-
-    public Category Category { get; private set; } = null!;
-
-    public int BrandId { get; private set; }
-
-    public Brand Brand { get; private set; } = null!;
-
-    public ProductStatus Status { get; private set; } = ProductStatus.Inactive;
-
-    public IReadOnlyCollection<ProductVariant> Variants => _variants.AsReadOnly();
 
     public void Rename(string name)
     {
@@ -85,7 +85,7 @@ public class Product : BaseAuditableEntity
         Status = ProductStatus.Inactive;
     }
 
-    public void AddVariant(decimal originalPrice, IEnumerable<int> attributeValueIds)
+    public void AddVariant(Money originalPrice, IEnumerable<int> attributeValueIds)
     {
         var variant = new ProductVariant(originalPrice, attributeValueIds);
 

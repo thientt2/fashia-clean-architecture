@@ -3,15 +3,28 @@ namespace Fashia.Domain.Entities;
 public class ProductVariant : BaseAuditableEntity
 {
     private readonly List<ProductVariantAttributeValue> _attributeValues = new();
+    public int ProductId { get; private set; }
+
+    public Product Product { get; private set; } = null!;
+
+    public Money OriginalPrice { get; private set; } = null!;
+
+    public Percentage DiscountPercentage { get; private set; } = null!;
+
+    public Money SellingPrice => OriginalPrice.Multiply(1 - DiscountPercentage.Value / 100);
+
+    public IReadOnlyCollection<ProductVariantAttributeValue> AttributeValues =>
+        _attributeValues.AsReadOnly();
 
     private ProductVariant()
     {
         // EF Core
     }
 
-    public ProductVariant(decimal originalPrice, IEnumerable<int> attributeValueIds)
+    public ProductVariant(Money originalPrice, IEnumerable<int> attributeValueIds)
     {
-        SetOriginalPrice(originalPrice);
+        OriginalPrice = originalPrice;
+        DiscountPercentage = Percentage.Zero;
 
         foreach (var attributeValueId in attributeValueIds.Distinct())
         {
@@ -19,33 +32,9 @@ public class ProductVariant : BaseAuditableEntity
         }
     }
 
-    public int ProductId { get; private set; }
-
-    public Product Product { get; private set; } = null!;
-
-    public decimal OriginalPrice { get; private set; }
-
-    public decimal DiscountPercentage { get; private set; }
-
-    public decimal SellingPrice => OriginalPrice * (1 - DiscountPercentage / 100);
-
-    public IReadOnlyCollection<ProductVariantAttributeValue> AttributeValues =>
-        _attributeValues.AsReadOnly();
-
-    public void ChangePrice(decimal price)
+    public void ChangePrice(Money price)
     {
-        SetOriginalPrice(price);
-    }
-
-    public void ApplyDiscount(decimal discountPercentage)
-    {
-        if (discountPercentage < 0 || discountPercentage > 100)
-            throw new ArgumentException(
-                "Discount percentage must be between 0 and 100.",
-                nameof(discountPercentage)
-            );
-
-        DiscountPercentage = discountPercentage;
+        OriginalPrice = price;
     }
 
     public void ReplaceAttributeValues(IEnumerable<int> attributeValueIds)
@@ -70,13 +59,5 @@ public class ProductVariant : BaseAuditableEntity
             return;
 
         _attributeValues.Add(new ProductVariantAttributeValue(attributeValueId));
-    }
-
-    private void SetOriginalPrice(decimal price)
-    {
-        if (price < 0)
-            throw new ArgumentException("Price cannot be negative.", nameof(price));
-
-        OriginalPrice = price;
     }
 }
