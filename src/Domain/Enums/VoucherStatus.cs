@@ -1,8 +1,8 @@
 namespace Fashia.Domain.Enums;
 
-public enum ProductVariantStatus
+public enum VoucherStatus
 {
     Active = 0,
     Inactive = 1,
-    Discontinued = 2,
+    Suspended = 2,
 }
