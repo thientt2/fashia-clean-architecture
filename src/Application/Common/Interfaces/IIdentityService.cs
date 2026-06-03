@@ -17,4 +17,5 @@ public interface IIdentityService
     Task<int?> GetUserBranchIdAsync(string userId);
 
     Task<bool> CanManageBranchAsync(string userId, int branchId);
+    Task<Result> AddToRoleAsync(string userId, string role);
 }

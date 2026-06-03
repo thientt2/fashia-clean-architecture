@@ -39,9 +39,10 @@ public sealed class GetProductsQueryHandler
                     .Select(v => new ProductVariantDto
                     {
                         Id = v.Id,
-                        OriginalPrice = v.OriginalPrice,
-                        DiscountPercentage = v.DiscountPercentage,
-                        SellingPrice = v.OriginalPrice * (1 - v.DiscountPercentage / 100),
+                        OriginalPrice = v.OriginalPrice.Amount,
+                        DiscountPercentage = v.DiscountPercentage.Value,
+                        SellingPrice =
+                            v.OriginalPrice.Amount * (1 - v.DiscountPercentage.Value / 100),
                         AttributeValues = v
                             .AttributeValues.OrderBy(av => av.AttributeValue.Value)
                             .Select(av => new ProductVariantAttributeValueDto
@@ -89,9 +90,10 @@ public sealed class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQ
                     .Select(v => new ProductVariantDto
                     {
                         Id = v.Id,
-                        OriginalPrice = v.OriginalPrice,
-                        DiscountPercentage = v.DiscountPercentage,
-                        SellingPrice = v.OriginalPrice * (1 - v.DiscountPercentage / 100),
+                        OriginalPrice = v.OriginalPrice.Amount,
+                        DiscountPercentage = v.DiscountPercentage.Value,
+                        SellingPrice =
+                            v.OriginalPrice.Amount * (1 - v.DiscountPercentage.Value / 100),
                         AttributeValues = v
                             .AttributeValues.OrderBy(av => av.AttributeValue.Value)
                             .Select(av => new ProductVariantAttributeValueDto

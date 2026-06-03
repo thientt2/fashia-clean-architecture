@@ -14,5 +14,13 @@ public interface IApplicationDbContext
     DbSet<Branch> Branches { get; }
     DbSet<BranchVariantInventory> BranchVariantInventories { get; }
     DbSet<InventoryTransaction> InventoryTransactions { get; }
+    DbSet<Customer> Customers { get; }
+    DbSet<Cart> Carts { get; }
+    DbSet<CartItem> CartItems { get; }
+    DbSet<Order> Orders { get; }
+    DbSet<OrderItem> OrderItems { get; }
+    DbSet<OrderVoucher> OrderVouchers { get; }
+    DbSet<Voucher> Vouchers { get; }
+    DbSet<CustomerVoucher> CustomerVouchers { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

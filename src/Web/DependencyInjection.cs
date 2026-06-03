@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Azure.Identity;
 using Fashia.Application.Common.Interfaces;
 using Fashia.Infrastructure.Data;
@@ -22,7 +24,8 @@ public static class DependencyInjection
 
         // Customise default API behaviour
         builder.Services.Configure<ApiBehaviorOptions>(options =>
-            options.SuppressModelStateInvalidFilter = true);
+            options.SuppressModelStateInvalidFilter = true
+        );
 
         builder.Services.AddEndpointsApiExplorer();
 
@@ -31,6 +34,15 @@ public static class DependencyInjection
             options.AddOperationTransformer<ApiExceptionOperationTransformer>();
             options.AddOperationTransformer<IdentityApiOperationTransformer>();
         });
+
+        builder
+            .Services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(
+                    new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
+                );
+            });
 
         builder.Services.AddCors();
     }
@@ -42,7 +54,8 @@ public static class DependencyInjection
         {
             builder.Configuration.AddAzureKeyVault(
                 new Uri(keyVaultUri),
-                new DefaultAzureCredential());
+                new DefaultAzureCredential()
+            );
         }
     }
 }

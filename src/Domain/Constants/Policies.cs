@@ -6,4 +6,6 @@ public abstract class Policies
     public const string CanManageProducts = nameof(CanManageProducts);
     public const string CanManageBranches = nameof(CanManageBranches);
     public const string CanManageBranchInventories = nameof(CanManageBranchInventories);
+    public const string CanManageOrders = nameof(CanManageOrders);
+    public const string CanManageVouchers = nameof(CanManageVouchers);
 }

@@ -23,6 +23,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<Branch> Branches => Set<Branch>();
     public DbSet<BranchVariantInventory> BranchVariantInventories => Set<BranchVariantInventory>();
     public DbSet<InventoryTransaction> InventoryTransactions => Set<InventoryTransaction>();
+    public DbSet<Customer> Customers => Set<Customer>();
+    public DbSet<Cart> Carts => Set<Cart>();
+    public DbSet<CartItem> CartItems => Set<CartItem>();
+    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<OrderVoucher> OrderVouchers => Set<OrderVoucher>();
+    public DbSet<Voucher> Vouchers => Set<Voucher>();
+    public DbSet<CustomerVoucher> CustomerVouchers => Set<CustomerVoucher>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

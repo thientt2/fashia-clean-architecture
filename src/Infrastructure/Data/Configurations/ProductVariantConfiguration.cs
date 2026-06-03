@@ -8,9 +8,24 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
 {
     public void Configure(EntityTypeBuilder<ProductVariant> builder)
     {
-        builder.Property(x => x.OriginalPrice).HasPrecision(18, 2).IsRequired();
+        builder.OwnsOne(
+            x => x.DiscountPercentage,
+            discount =>
+            {
+                discount
+                    .Property(p => p.Value)
+                    .HasColumnName("DiscountPercentage")
+                    .HasPrecision(5, 2);
+            }
+        );
 
-        builder.Property(x => x.DiscountPercentage).HasPrecision(5, 2).IsRequired();
+        builder.OwnsOne(
+            x => x.OriginalPrice,
+            price =>
+            {
+                price.Property(p => p.Amount).HasColumnName("OriginalPrice").HasPrecision(18, 2);
+            }
+        );
 
         builder.Ignore(x => x.SellingPrice);
 

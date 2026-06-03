@@ -1,6 +1,7 @@
 using Fashia.Application.Common.Interfaces;
 using Fashia.Application.Common.Models;
 using Fashia.Domain.Entities;
+using Fashia.Domain.ValueObjects;
 using MediatR;
 
 namespace Fashia.Application.Products.Commands.CreateProduct;
@@ -75,7 +76,7 @@ public sealed class CreateProductCommandHandler : IRequestHandler<CreateProductC
 
             foreach (var variant in request.Variants)
             {
-                product.AddVariant(variant.OriginalPrice, variant.AttributeValueIds);
+                product.AddVariant(Money.Create(variant.OriginalPrice), variant.AttributeValueIds);
             }
 
             _context.Products.Add(product);

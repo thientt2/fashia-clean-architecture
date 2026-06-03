@@ -68,6 +68,281 @@ export class BranchInventoriesClient {
     }
 }
 
+export class CartClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * Get current Cart
+     * @return OK
+     */
+    getCurrentCart(): Promise<CartDto> {
+        let url_ = this.baseUrl + "/api/Cart";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetCurrentCart(_response);
+        });
+    }
+
+    protected processGetCurrentCart(response: Response): Promise<CartDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CartDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CartDto>(null as any);
+    }
+
+    /**
+     * Clear Cart
+     * @return No Content
+     */
+    clearCart(): Promise<void> {
+        let url_ = this.baseUrl + "/api/Cart";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processClearCart(_response);
+        });
+    }
+
+    protected processClearCart(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Add Cart item
+     * @return OK
+     */
+    addCartItem(body: AddCartItemRequest): Promise<CartDto> {
+        let url_ = this.baseUrl + "/api/Cart/items";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAddCartItem(_response);
+        });
+    }
+
+    protected processAddCartItem(response: Response): Promise<CartDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CartDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CartDto>(null as any);
+    }
+
+    /**
+     * Update Cart item
+     * @return OK
+     */
+    updateCartItemQuantity(productVariantId: number, body: UpdateCartItemQuantityRequest): Promise<CartDto> {
+        let url_ = this.baseUrl + "/api/Cart/items/{productVariantId}";
+        if (productVariantId === undefined || productVariantId === null)
+            throw new globalThis.Error("The parameter 'productVariantId' must be defined.");
+        url_ = url_.replace("{productVariantId}", encodeURIComponent("" + productVariantId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateCartItemQuantity(_response);
+        });
+    }
+
+    protected processUpdateCartItemQuantity(response: Response): Promise<CartDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CartDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CartDto>(null as any);
+    }
+
+    /**
+     * Remove Cart item
+     * @return OK
+     */
+    removeCartItem(productVariantId: number): Promise<CartDto> {
+        let url_ = this.baseUrl + "/api/Cart/items/{productVariantId}";
+        if (productVariantId === undefined || productVariantId === null)
+            throw new globalThis.Error("The parameter 'productVariantId' must be defined.");
+        url_ = url_.replace("{productVariantId}", encodeURIComponent("" + productVariantId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRemoveCartItem(_response);
+        });
+    }
+
+    protected processRemoveCartItem(response: Response): Promise<CartDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CartDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CartDto>(null as any);
+    }
+}
+
 export class CategoriesClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -444,6 +719,217 @@ export class CategoriesClient {
             });
         }
         return Promise.resolve<void>(null as any);
+    }
+}
+
+export class OrdersClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * Get all Orders
+     * @return OK
+     */
+    getOrders(): Promise<OrderDto[]> {
+        let url_ = this.baseUrl + "/api/Orders";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetOrders(_response);
+        });
+    }
+
+    protected processGetOrders(response: Response): Promise<OrderDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(OrderDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OrderDto[]>(null as any);
+    }
+
+    /**
+     * Create Order
+     * @return Created
+     */
+    createOrder(body: CreateOrderRequest): Promise<number> {
+        let url_ = this.baseUrl + "/api/Orders";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateOrder(_response);
+        });
+    }
+
+    protected processCreateOrder(response: Response): Promise<number> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result201 = resultData201 !== undefined ? resultData201 : null as any;
+    
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<number>(null as any);
+    }
+
+    /**
+     * Get Order by Id
+     * @return OK
+     */
+    getOrderById(id: number): Promise<OrderDto> {
+        let url_ = this.baseUrl + "/api/Orders/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetOrderById(_response);
+        });
+    }
+
+    protected processGetOrderById(response: Response): Promise<OrderDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = OrderDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OrderDto>(null as any);
+    }
+
+    /**
+     * Checkout Cart
+     * @return Created
+     */
+    checkoutOrder(body: CheckoutOrderRequest): Promise<number> {
+        let url_ = this.baseUrl + "/api/Orders/checkout";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCheckoutOrder(_response);
+        });
+    }
+
+    protected processCheckoutOrder(response: Response): Promise<number> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result201 = resultData201 !== undefined ? resultData201 : null as any;
+    
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<number>(null as any);
     }
 }
 
@@ -1314,6 +1800,481 @@ export class UsersClient {
     }
 }
 
+export class VouchersClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * Get all Vouchers
+     * @return OK
+     */
+    getVouchers(): Promise<VoucherDto[]> {
+        let url_ = this.baseUrl + "/api/Vouchers";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetVouchers(_response);
+        });
+    }
+
+    protected processGetVouchers(response: Response): Promise<VoucherDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(VoucherDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<VoucherDto[]>(null as any);
+    }
+
+    /**
+     * Create Voucher
+     * @return Created
+     */
+    createVoucher(body: CreateVoucherRequest): Promise<number> {
+        let url_ = this.baseUrl + "/api/Vouchers";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateVoucher(_response);
+        });
+    }
+
+    protected processCreateVoucher(response: Response): Promise<number> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result201 = resultData201 !== undefined ? resultData201 : null as any;
+    
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<number>(null as any);
+    }
+
+    /**
+     * Get Voucher by Id
+     * @return OK
+     */
+    getVoucherById(id: number): Promise<VoucherDto> {
+        let url_ = this.baseUrl + "/api/Vouchers/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetVoucherById(_response);
+        });
+    }
+
+    protected processGetVoucherById(response: Response): Promise<VoucherDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = VoucherDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<VoucherDto>(null as any);
+    }
+
+    /**
+     * Update Voucher
+     * @return No Content
+     */
+    updateVoucher(id: number, body: UpdateVoucherRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/Vouchers/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateVoucher(_response);
+        });
+    }
+
+    protected processUpdateVoucher(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Get Voucher Usages
+     * @param orderId (optional) 
+     * @param voucherId (optional) 
+     * @return OK
+     */
+    getOrderVoucherUsages(orderId: number | undefined, voucherId: number | undefined): Promise<OrderVoucherUsageDto[]> {
+        let url_ = this.baseUrl + "/api/Vouchers/usages?";
+        if (orderId === null)
+            throw new globalThis.Error("The parameter 'orderId' cannot be null.");
+        else if (orderId !== undefined)
+            url_ += "orderId=" + encodeURIComponent("" + orderId) + "&";
+        if (voucherId === null)
+            throw new globalThis.Error("The parameter 'voucherId' cannot be null.");
+        else if (voucherId !== undefined)
+            url_ += "voucherId=" + encodeURIComponent("" + voucherId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetOrderVoucherUsages(_response);
+        });
+    }
+
+    protected processGetOrderVoucherUsages(response: Response): Promise<OrderVoucherUsageDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(OrderVoucherUsageDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OrderVoucherUsageDto[]>(null as any);
+    }
+
+    /**
+     * Get Usages by Voucher
+     * @return OK
+     */
+    getVoucherUsages(id: number): Promise<OrderVoucherUsageDto[]> {
+        let url_ = this.baseUrl + "/api/Vouchers/{id}/usages";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetVoucherUsages(_response);
+        });
+    }
+
+    protected processGetVoucherUsages(response: Response): Promise<OrderVoucherUsageDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(OrderVoucherUsageDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OrderVoucherUsageDto[]>(null as any);
+    }
+
+    /**
+     * Deactivate Voucher
+     * @return No Content
+     */
+    deactivateVoucher(id: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/Vouchers/deactivate/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "PATCH",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeactivateVoucher(_response);
+        });
+    }
+
+    protected processDeactivateVoucher(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Suspend Voucher
+     * @return No Content
+     */
+    suspendVoucher(id: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/Vouchers/suspend/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "PATCH",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSuspendVoucher(_response);
+        });
+    }
+
+    protected processSuspendVoucher(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Reactivate Voucher
+     * @return No Content
+     */
+    reactivateVoucher(id: number): Promise<void> {
+        let url_ = this.baseUrl + "/api/Vouchers/reactivate/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "PATCH",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReactivateVoucher(_response);
+        });
+    }
+
+    protected processReactivateVoucher(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+}
+
 export class AccessTokenResponse implements IAccessTokenResponse {
     tokenType?: string | undefined;
     accessToken!: string;
@@ -1370,6 +2331,194 @@ export interface IAccessTokenResponse {
     accessToken: string;
     expiresIn: number;
     refreshToken: string;
+
+    [key: string]: any;
+}
+
+export class AddCartItemRequest implements IAddCartItemRequest {
+    productVariantId?: number;
+    quantity?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IAddCartItemRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.productVariantId = _data["productVariantId"];
+            this.quantity = _data["quantity"];
+        }
+    }
+
+    static fromJS(data: any): AddCartItemRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new AddCartItemRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["productVariantId"] = this.productVariantId;
+        data["quantity"] = this.quantity;
+        return data;
+    }
+}
+
+export interface IAddCartItemRequest {
+    productVariantId?: number;
+    quantity?: number;
+
+    [key: string]: any;
+}
+
+export class CartDto implements ICartDto {
+    id?: number;
+    customerId?: number | undefined;
+    status?: string;
+    items?: CartItemDto[];
+
+    [key: string]: any;
+
+    constructor(data?: ICartDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.customerId = _data["customerId"];
+            this.status = _data["status"];
+            if (Array.isArray(_data["items"])) {
+                this.items = [] as any;
+                for (let item of _data["items"])
+                    this.items!.push(CartItemDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): CartDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new CartDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["customerId"] = this.customerId;
+        data["status"] = this.status;
+        if (Array.isArray(this.items)) {
+            data["items"] = [];
+            for (let item of this.items)
+                data["items"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface ICartDto {
+    id?: number;
+    customerId?: number | undefined;
+    status?: string;
+    items?: CartItemDto[];
+
+    [key: string]: any;
+}
+
+export class CartItemDto implements ICartItemDto {
+    id?: number;
+    productVariantId?: number;
+    productName?: string;
+    quantity?: number;
+    unitPrice?: number;
+    lineTotal?: number;
+
+    [key: string]: any;
+
+    constructor(data?: ICartItemDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.productVariantId = _data["productVariantId"];
+            this.productName = _data["productName"];
+            this.quantity = _data["quantity"];
+            this.unitPrice = _data["unitPrice"];
+            this.lineTotal = _data["lineTotal"];
+        }
+    }
+
+    static fromJS(data: any): CartItemDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new CartItemDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["productVariantId"] = this.productVariantId;
+        data["productName"] = this.productName;
+        data["quantity"] = this.quantity;
+        data["unitPrice"] = this.unitPrice;
+        data["lineTotal"] = this.lineTotal;
+        return data;
+    }
+}
+
+export interface ICartItemDto {
+    id?: number;
+    productVariantId?: number;
+    productName?: string;
+    quantity?: number;
+    unitPrice?: number;
+    lineTotal?: number;
 
     [key: string]: any;
 }
@@ -1446,6 +2595,74 @@ export interface ICategoryDto {
     [key: string]: any;
 }
 
+export class CheckoutOrderRequest implements ICheckoutOrderRequest {
+    branchId?: number;
+    voucherCode?: string | undefined;
+    customerName?: string;
+    customerEmail?: string | undefined;
+    customerPhone?: string;
+    shippingAddress?: string;
+
+    [key: string]: any;
+
+    constructor(data?: ICheckoutOrderRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.branchId = _data["branchId"];
+            this.voucherCode = _data["voucherCode"];
+            this.customerName = _data["customerName"];
+            this.customerEmail = _data["customerEmail"];
+            this.customerPhone = _data["customerPhone"];
+            this.shippingAddress = _data["shippingAddress"];
+        }
+    }
+
+    static fromJS(data: any): CheckoutOrderRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CheckoutOrderRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["branchId"] = this.branchId;
+        data["voucherCode"] = this.voucherCode;
+        data["customerName"] = this.customerName;
+        data["customerEmail"] = this.customerEmail;
+        data["customerPhone"] = this.customerPhone;
+        data["shippingAddress"] = this.shippingAddress;
+        return data;
+    }
+}
+
+export interface ICheckoutOrderRequest {
+    branchId?: number;
+    voucherCode?: string | undefined;
+    customerName?: string;
+    customerEmail?: string | undefined;
+    customerPhone?: string;
+    shippingAddress?: string;
+
+    [key: string]: any;
+}
+
 export class CreateCategoryRequest implements ICreateCategoryRequest {
     name?: string;
     description?: string | undefined;
@@ -1502,6 +2719,126 @@ export interface ICreateCategoryRequest {
     description?: string | undefined;
     parentId?: number | undefined;
     image?: Image | undefined;
+
+    [key: string]: any;
+}
+
+export class CreateOrderItemRequest implements ICreateOrderItemRequest {
+    productVariantId?: number;
+    quantity?: number;
+
+    [key: string]: any;
+
+    constructor(data?: ICreateOrderItemRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.productVariantId = _data["productVariantId"];
+            this.quantity = _data["quantity"];
+        }
+    }
+
+    static fromJS(data: any): CreateOrderItemRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateOrderItemRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["productVariantId"] = this.productVariantId;
+        data["quantity"] = this.quantity;
+        return data;
+    }
+}
+
+export interface ICreateOrderItemRequest {
+    productVariantId?: number;
+    quantity?: number;
+
+    [key: string]: any;
+}
+
+export class CreateOrderRequest implements ICreateOrderRequest {
+    customerId?: number;
+    branchId?: number;
+    voucherCode?: string | undefined;
+    items?: CreateOrderItemRequest[];
+
+    [key: string]: any;
+
+    constructor(data?: ICreateOrderRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.customerId = _data["customerId"];
+            this.branchId = _data["branchId"];
+            this.voucherCode = _data["voucherCode"];
+            if (Array.isArray(_data["items"])) {
+                this.items = [] as any;
+                for (let item of _data["items"])
+                    this.items!.push(CreateOrderItemRequest.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): CreateOrderRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateOrderRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["customerId"] = this.customerId;
+        data["branchId"] = this.branchId;
+        data["voucherCode"] = this.voucherCode;
+        if (Array.isArray(this.items)) {
+            data["items"] = [];
+            for (let item of this.items)
+                data["items"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface ICreateOrderRequest {
+    customerId?: number;
+    branchId?: number;
+    voucherCode?: string | undefined;
+    items?: CreateOrderItemRequest[];
 
     [key: string]: any;
 }
@@ -1570,6 +2907,94 @@ export interface ICreateProductRequest {
     brandId?: number;
     image?: Image2 | undefined;
     variants?: string;
+
+    [key: string]: any;
+}
+
+export class CreateVoucherRequest implements ICreateVoucherRequest {
+    code?: string;
+    discountType?: number;
+    discountAmount?: number;
+    minOrderAmount?: number;
+    maxDiscountAmount?: number;
+    usageLimit?: number;
+    validFrom?: Date;
+    validUntil?: Date;
+    voucherType?: number;
+    display?: number;
+    quantityPerUser?: number;
+
+    [key: string]: any;
+
+    constructor(data?: ICreateVoucherRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.code = _data["code"];
+            this.discountType = _data["discountType"];
+            this.discountAmount = _data["discountAmount"];
+            this.minOrderAmount = _data["minOrderAmount"];
+            this.maxDiscountAmount = _data["maxDiscountAmount"];
+            this.usageLimit = _data["usageLimit"];
+            this.validFrom = _data["validFrom"] ? new Date(_data["validFrom"].toString()) : undefined as any;
+            this.validUntil = _data["validUntil"] ? new Date(_data["validUntil"].toString()) : undefined as any;
+            this.voucherType = _data["voucherType"];
+            this.display = _data["display"];
+            this.quantityPerUser = _data["quantityPerUser"];
+        }
+    }
+
+    static fromJS(data: any): CreateVoucherRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateVoucherRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["code"] = this.code;
+        data["discountType"] = this.discountType;
+        data["discountAmount"] = this.discountAmount;
+        data["minOrderAmount"] = this.minOrderAmount;
+        data["maxDiscountAmount"] = this.maxDiscountAmount;
+        data["usageLimit"] = this.usageLimit;
+        data["validFrom"] = this.validFrom ? this.validFrom.toISOString() : undefined as any;
+        data["validUntil"] = this.validUntil ? this.validUntil.toISOString() : undefined as any;
+        data["voucherType"] = this.voucherType;
+        data["display"] = this.display;
+        data["quantityPerUser"] = this.quantityPerUser;
+        return data;
+    }
+}
+
+export interface ICreateVoucherRequest {
+    code?: string;
+    discountType?: number;
+    discountAmount?: number;
+    minOrderAmount?: number;
+    maxDiscountAmount?: number;
+    usageLimit?: number;
+    validFrom?: Date;
+    validUntil?: Date;
+    voucherType?: number;
+    display?: number;
+    quantityPerUser?: number;
 
     [key: string]: any;
 }
@@ -1978,6 +3403,346 @@ export class LookupDto implements ILookupDto {
 export interface ILookupDto {
     id?: number;
     name?: string | undefined;
+
+    [key: string]: any;
+}
+
+export class OrderDto implements IOrderDto {
+    id?: number;
+    customerId?: number | undefined;
+    customerName?: string;
+    customerEmail?: string | undefined;
+    customerPhone?: string;
+    shippingAddress?: string;
+    branchId?: number;
+    branchName?: string;
+    voucherId?: number | undefined;
+    voucherCode?: string | undefined;
+    subTotalAmount?: number;
+    discountAmount?: number;
+    totalAmount?: number;
+    status?: string;
+    items?: OrderItemDto[];
+    vouchers?: OrderVoucherDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IOrderDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.customerId = _data["customerId"];
+            this.customerName = _data["customerName"];
+            this.customerEmail = _data["customerEmail"];
+            this.customerPhone = _data["customerPhone"];
+            this.shippingAddress = _data["shippingAddress"];
+            this.branchId = _data["branchId"];
+            this.branchName = _data["branchName"];
+            this.voucherId = _data["voucherId"];
+            this.voucherCode = _data["voucherCode"];
+            this.subTotalAmount = _data["subTotalAmount"];
+            this.discountAmount = _data["discountAmount"];
+            this.totalAmount = _data["totalAmount"];
+            this.status = _data["status"];
+            if (Array.isArray(_data["items"])) {
+                this.items = [] as any;
+                for (let item of _data["items"])
+                    this.items!.push(OrderItemDto.fromJS(item));
+            }
+            if (Array.isArray(_data["vouchers"])) {
+                this.vouchers = [] as any;
+                for (let item of _data["vouchers"])
+                    this.vouchers!.push(OrderVoucherDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): OrderDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new OrderDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["customerId"] = this.customerId;
+        data["customerName"] = this.customerName;
+        data["customerEmail"] = this.customerEmail;
+        data["customerPhone"] = this.customerPhone;
+        data["shippingAddress"] = this.shippingAddress;
+        data["branchId"] = this.branchId;
+        data["branchName"] = this.branchName;
+        data["voucherId"] = this.voucherId;
+        data["voucherCode"] = this.voucherCode;
+        data["subTotalAmount"] = this.subTotalAmount;
+        data["discountAmount"] = this.discountAmount;
+        data["totalAmount"] = this.totalAmount;
+        data["status"] = this.status;
+        if (Array.isArray(this.items)) {
+            data["items"] = [];
+            for (let item of this.items)
+                data["items"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.vouchers)) {
+            data["vouchers"] = [];
+            for (let item of this.vouchers)
+                data["vouchers"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IOrderDto {
+    id?: number;
+    customerId?: number | undefined;
+    customerName?: string;
+    customerEmail?: string | undefined;
+    customerPhone?: string;
+    shippingAddress?: string;
+    branchId?: number;
+    branchName?: string;
+    voucherId?: number | undefined;
+    voucherCode?: string | undefined;
+    subTotalAmount?: number;
+    discountAmount?: number;
+    totalAmount?: number;
+    status?: string;
+    items?: OrderItemDto[];
+    vouchers?: OrderVoucherDto[];
+
+    [key: string]: any;
+}
+
+export class OrderItemDto implements IOrderItemDto {
+    id?: number;
+    productVariantId?: number;
+    productName?: string;
+    quantity?: number;
+    unitPrice?: number;
+    lineTotal?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IOrderItemDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.productVariantId = _data["productVariantId"];
+            this.productName = _data["productName"];
+            this.quantity = _data["quantity"];
+            this.unitPrice = _data["unitPrice"];
+            this.lineTotal = _data["lineTotal"];
+        }
+    }
+
+    static fromJS(data: any): OrderItemDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new OrderItemDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["productVariantId"] = this.productVariantId;
+        data["productName"] = this.productName;
+        data["quantity"] = this.quantity;
+        data["unitPrice"] = this.unitPrice;
+        data["lineTotal"] = this.lineTotal;
+        return data;
+    }
+}
+
+export interface IOrderItemDto {
+    id?: number;
+    productVariantId?: number;
+    productName?: string;
+    quantity?: number;
+    unitPrice?: number;
+    lineTotal?: number;
+
+    [key: string]: any;
+}
+
+export class OrderVoucherDto implements IOrderVoucherDto {
+    id?: number;
+    voucherId?: number;
+    voucherCode?: string;
+    discountAmount?: number;
+    appliedAt?: Date;
+
+    [key: string]: any;
+
+    constructor(data?: IOrderVoucherDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.voucherId = _data["voucherId"];
+            this.voucherCode = _data["voucherCode"];
+            this.discountAmount = _data["discountAmount"];
+            this.appliedAt = _data["appliedAt"] ? new Date(_data["appliedAt"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): OrderVoucherDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new OrderVoucherDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["voucherId"] = this.voucherId;
+        data["voucherCode"] = this.voucherCode;
+        data["discountAmount"] = this.discountAmount;
+        data["appliedAt"] = this.appliedAt ? this.appliedAt.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IOrderVoucherDto {
+    id?: number;
+    voucherId?: number;
+    voucherCode?: string;
+    discountAmount?: number;
+    appliedAt?: Date;
+
+    [key: string]: any;
+}
+
+export class OrderVoucherUsageDto implements IOrderVoucherUsageDto {
+    id?: number;
+    orderId?: number;
+    customerId?: number | undefined;
+    customerName?: string;
+    voucherId?: number;
+    voucherCode?: string;
+    orderSubTotalAmount?: number;
+    discountAmount?: number;
+    orderTotalAmount?: number;
+    appliedAt?: Date;
+
+    [key: string]: any;
+
+    constructor(data?: IOrderVoucherUsageDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.orderId = _data["orderId"];
+            this.customerId = _data["customerId"];
+            this.customerName = _data["customerName"];
+            this.voucherId = _data["voucherId"];
+            this.voucherCode = _data["voucherCode"];
+            this.orderSubTotalAmount = _data["orderSubTotalAmount"];
+            this.discountAmount = _data["discountAmount"];
+            this.orderTotalAmount = _data["orderTotalAmount"];
+            this.appliedAt = _data["appliedAt"] ? new Date(_data["appliedAt"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): OrderVoucherUsageDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new OrderVoucherUsageDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["orderId"] = this.orderId;
+        data["customerId"] = this.customerId;
+        data["customerName"] = this.customerName;
+        data["voucherId"] = this.voucherId;
+        data["voucherCode"] = this.voucherCode;
+        data["orderSubTotalAmount"] = this.orderSubTotalAmount;
+        data["discountAmount"] = this.discountAmount;
+        data["orderTotalAmount"] = this.orderTotalAmount;
+        data["appliedAt"] = this.appliedAt ? this.appliedAt.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IOrderVoucherUsageDto {
+    id?: number;
+    orderId?: number;
+    customerId?: number | undefined;
+    customerName?: string;
+    voucherId?: number;
+    voucherCode?: string;
+    orderSubTotalAmount?: number;
+    discountAmount?: number;
+    orderTotalAmount?: number;
+    appliedAt?: Date;
 
     [key: string]: any;
 }
@@ -2538,6 +4303,54 @@ export interface ITwoFactorResponse {
     [key: string]: any;
 }
 
+export class UpdateCartItemQuantityRequest implements IUpdateCartItemQuantityRequest {
+    quantity?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IUpdateCartItemQuantityRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.quantity = _data["quantity"];
+        }
+    }
+
+    static fromJS(data: any): UpdateCartItemQuantityRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateCartItemQuantityRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["quantity"] = this.quantity;
+        return data;
+    }
+}
+
+export interface IUpdateCartItemQuantityRequest {
+    quantity?: number;
+
+    [key: string]: any;
+}
+
 export class UpdateCategoryCommand implements IUpdateCategoryCommand {
     name?: string;
     description?: string | undefined;
@@ -2658,6 +4471,194 @@ export interface IUpdateProductCommand {
     imageUrl?: string | undefined;
     categoryId?: number;
     brandId?: number;
+
+    [key: string]: any;
+}
+
+export class UpdateVoucherRequest implements IUpdateVoucherRequest {
+    code?: string;
+    discountType?: number;
+    discountAmount?: number;
+    minOrderAmount?: number;
+    maxDiscountAmount?: number;
+    usageLimit?: number;
+    validFrom?: Date;
+    validUntil?: Date;
+    voucherType?: number;
+    display?: number;
+    quantityPerUser?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IUpdateVoucherRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.code = _data["code"];
+            this.discountType = _data["discountType"];
+            this.discountAmount = _data["discountAmount"];
+            this.minOrderAmount = _data["minOrderAmount"];
+            this.maxDiscountAmount = _data["maxDiscountAmount"];
+            this.usageLimit = _data["usageLimit"];
+            this.validFrom = _data["validFrom"] ? new Date(_data["validFrom"].toString()) : undefined as any;
+            this.validUntil = _data["validUntil"] ? new Date(_data["validUntil"].toString()) : undefined as any;
+            this.voucherType = _data["voucherType"];
+            this.display = _data["display"];
+            this.quantityPerUser = _data["quantityPerUser"];
+        }
+    }
+
+    static fromJS(data: any): UpdateVoucherRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateVoucherRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["code"] = this.code;
+        data["discountType"] = this.discountType;
+        data["discountAmount"] = this.discountAmount;
+        data["minOrderAmount"] = this.minOrderAmount;
+        data["maxDiscountAmount"] = this.maxDiscountAmount;
+        data["usageLimit"] = this.usageLimit;
+        data["validFrom"] = this.validFrom ? this.validFrom.toISOString() : undefined as any;
+        data["validUntil"] = this.validUntil ? this.validUntil.toISOString() : undefined as any;
+        data["voucherType"] = this.voucherType;
+        data["display"] = this.display;
+        data["quantityPerUser"] = this.quantityPerUser;
+        return data;
+    }
+}
+
+export interface IUpdateVoucherRequest {
+    code?: string;
+    discountType?: number;
+    discountAmount?: number;
+    minOrderAmount?: number;
+    maxDiscountAmount?: number;
+    usageLimit?: number;
+    validFrom?: Date;
+    validUntil?: Date;
+    voucherType?: number;
+    display?: number;
+    quantityPerUser?: number;
+
+    [key: string]: any;
+}
+
+export class VoucherDto implements IVoucherDto {
+    id?: number;
+    code?: string;
+    discountType?: string;
+    discountAmount?: number;
+    minOrderAmount?: number;
+    maxDiscountAmount?: number;
+    usageLimit?: number;
+    usedCount?: number;
+    validFrom?: Date;
+    validUntil?: Date;
+    voucherType?: string;
+    status?: string;
+    display?: string;
+    quantityPerUser?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IVoucherDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.code = _data["code"];
+            this.discountType = _data["discountType"];
+            this.discountAmount = _data["discountAmount"];
+            this.minOrderAmount = _data["minOrderAmount"];
+            this.maxDiscountAmount = _data["maxDiscountAmount"];
+            this.usageLimit = _data["usageLimit"];
+            this.usedCount = _data["usedCount"];
+            this.validFrom = _data["validFrom"] ? new Date(_data["validFrom"].toString()) : undefined as any;
+            this.validUntil = _data["validUntil"] ? new Date(_data["validUntil"].toString()) : undefined as any;
+            this.voucherType = _data["voucherType"];
+            this.status = _data["status"];
+            this.display = _data["display"];
+            this.quantityPerUser = _data["quantityPerUser"];
+        }
+    }
+
+    static fromJS(data: any): VoucherDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new VoucherDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["code"] = this.code;
+        data["discountType"] = this.discountType;
+        data["discountAmount"] = this.discountAmount;
+        data["minOrderAmount"] = this.minOrderAmount;
+        data["maxDiscountAmount"] = this.maxDiscountAmount;
+        data["usageLimit"] = this.usageLimit;
+        data["usedCount"] = this.usedCount;
+        data["validFrom"] = this.validFrom ? this.validFrom.toISOString() : undefined as any;
+        data["validUntil"] = this.validUntil ? this.validUntil.toISOString() : undefined as any;
+        data["voucherType"] = this.voucherType;
+        data["status"] = this.status;
+        data["display"] = this.display;
+        data["quantityPerUser"] = this.quantityPerUser;
+        return data;
+    }
+}
+
+export interface IVoucherDto {
+    id?: number;
+    code?: string;
+    discountType?: string;
+    discountAmount?: number;
+    minOrderAmount?: number;
+    maxDiscountAmount?: number;
+    usageLimit?: number;
+    usedCount?: number;
+    validFrom?: Date;
+    validUntil?: Date;
+    voucherType?: string;
+    status?: string;
+    display?: string;
+    quantityPerUser?: number;
 
     [key: string]: any;
 }

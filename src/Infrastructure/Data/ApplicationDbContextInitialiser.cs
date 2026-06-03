@@ -82,32 +82,44 @@ public class ApplicationDbContextInitialiser
         {
             _context.Branches.Add(
                 new Branch(
-                    "Chi nhánh 1",
-                    "Địa chỉ 1",
-                    "0369405891",
-                    true,
-                    10.7094913M,
-                    106.7056713M
+                    name: "Chi nhánh 1",
+                    phone: PhoneNumber.Create("0369405891"),
+                    email: EmailVO.Create("branch1@localhost"),
+                    address: Address.Create(
+                        line1: "123 Main St",
+                        ward: "District 1",
+                        district: "HCM City",
+                        province: "Vietnam"
+                    ),
+                    location: GeoLocation.Create(latitude: 10.7094913M, longitude: 106.7056713M)
                 )
             );
             _context.Branches.Add(
                 new Branch(
-                    "Chi nhánh 2",
-                    "Địa chỉ 2",
-                    "0369405892",
-                    false,
-                    10.7094913M,
-                    106.7056713M
+                    name: "Chi nhánh 2",
+                    phone: PhoneNumber.Create("0369405892"),
+                    email: EmailVO.Create("branch2@localhost"),
+                    address: Address.Create(
+                        line1: "456 Elm St",
+                        ward: "District 2",
+                        district: "HCM City",
+                        province: "Vietnam"
+                    ),
+                    location: GeoLocation.Create(latitude: 10.7094913M, longitude: 106.7056713M)
                 )
             );
             _context.Branches.Add(
                 new Branch(
-                    "Chi nhánh 3",
-                    "Địa chỉ 3",
-                    "0369405893",
-                    false,
-                    10.7094913M,
-                    106.7056713M
+                    name: "Chi nhánh 3",
+                    phone: PhoneNumber.Create("0369405893"),
+                    email: EmailVO.Create("branch3@localhost"),
+                    address: Address.Create(
+                        line1: "789 Pine Rd",
+                        ward: "District 3",
+                        district: "HCM City",
+                        province: "Vietnam"
+                    ),
+                    location: GeoLocation.Create(latitude: 10.7094913M, longitude: 106.7056713M)
                 )
             );
 
@@ -117,6 +129,7 @@ public class ApplicationDbContextInitialiser
         var administratorRole = new IdentityRole(Roles.Administrator);
         var branchManagerRole = new IdentityRole(Roles.BranchManager);
         var customerRole = new IdentityRole(Roles.Customer);
+        var employeeRole = new IdentityRole(Roles.Employee);
 
         if (_roleManager.Roles.All(r => r.Name != administratorRole.Name))
         {
@@ -133,34 +146,44 @@ public class ApplicationDbContextInitialiser
             await _roleManager.CreateAsync(customerRole);
         }
 
+        if (_roleManager.Roles.All(r => r.Name != employeeRole.Name))
+        {
+            await _roleManager.CreateAsync(employeeRole);
+        }
+
         // Default users
         var administrator = new ApplicationUser
         {
             UserName = "administrator@localhost",
-            Email = "administrator@localhost",
+            Email = EmailVO.Create("administrator@localhost"),
         };
-        var branchManager = new ApplicationUser
+        var branchManager1 = new ApplicationUser
         {
             UserName = "branchmanager1@localhost",
-            Email = "branchmanager1@localhost",
+            Email = EmailVO.Create("branchmanager1@localhost"),
             BranchId = 1,
         };
         var branchManager2 = new ApplicationUser
         {
             UserName = "branchmanager2@localhost",
-            Email = "branchmanager2@localhost",
+            Email = EmailVO.Create("branchmanager2@localhost"),
             BranchId = 2,
         };
         var branchManager3 = new ApplicationUser
         {
             UserName = "branchmanager3@localhost",
-            Email = "branchmanager3@localhost",
+            Email = EmailVO.Create("branchmanager3@localhost"),
             BranchId = 3,
         };
         var customer = new ApplicationUser
         {
             UserName = "customer@localhost",
             Email = "customer@localhost",
+        };
+        var employee = new ApplicationUser
+        {
+            UserName = "employee@localhost",
+            Email = EmailVO.Create("employee@localhost"),
         };
 
         if (_userManager.Users.All(u => u.UserName != administrator.UserName))
@@ -172,12 +195,39 @@ public class ApplicationDbContextInitialiser
             }
         }
 
-        if (_userManager.Users.All(u => u.UserName != branchManager.UserName))
+        if (_userManager.Users.All(u => u.UserName != branchManager1.UserName))
         {
-            await _userManager.CreateAsync(branchManager, "BranchManager1!");
+            await _userManager.CreateAsync(branchManager1, "BranchManager1!");
             if (!string.IsNullOrWhiteSpace(branchManagerRole.Name))
             {
-                await _userManager.AddToRolesAsync(branchManager, new[] { branchManagerRole.Name });
+                await _userManager.AddToRolesAsync(
+                    branchManager1,
+                    new[] { branchManagerRole.Name }
+                );
+            }
+        }
+
+        if (_userManager.Users.All(u => u.UserName != branchManager2.UserName))
+        {
+            await _userManager.CreateAsync(branchManager2, "BranchManager2!");
+            if (!string.IsNullOrWhiteSpace(branchManagerRole.Name))
+            {
+                await _userManager.AddToRolesAsync(
+                    branchManager2,
+                    new[] { branchManagerRole.Name }
+                );
+            }
+        }
+
+        if (_userManager.Users.All(u => u.UserName != branchManager3.UserName))
+        {
+            await _userManager.CreateAsync(branchManager3, "BranchManager3!");
+            if (!string.IsNullOrWhiteSpace(branchManagerRole.Name))
+            {
+                await _userManager.AddToRolesAsync(
+                    branchManager3,
+                    new[] { branchManagerRole.Name }
+                );
             }
         }
 
@@ -187,6 +237,15 @@ public class ApplicationDbContextInitialiser
             if (!string.IsNullOrWhiteSpace(customerRole.Name))
             {
                 await _userManager.AddToRolesAsync(customer, new[] { customerRole.Name });
+            }
+        }
+
+        if (_userManager.Users.All(u => u.UserName != employee.UserName))
+        {
+            await _userManager.CreateAsync(employee, "Employee1!");
+            if (!string.IsNullOrWhiteSpace(employeeRole.Name))
+            {
+                await _userManager.AddToRolesAsync(employee, new[] { employeeRole.Name });
             }
         }
 
@@ -309,19 +368,5 @@ public class ApplicationDbContextInitialiser
         {
             await CreateCategoryTreeAsync(child, category);
         }
-    }
-
-    private Category CreateCategoryTree(CategorySeedModel model)
-    {
-        var category = new Category(model.Name);
-
-        foreach (var childModel in model.Children)
-        {
-            var child = CreateCategoryTree(childModel);
-
-            category.AddChild(child);
-        }
-
-        return category;
     }
 }
