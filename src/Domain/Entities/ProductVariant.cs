@@ -3,6 +3,7 @@ namespace Fashia.Domain.Entities;
 public class ProductVariant : BaseAuditableEntity
 {
     private readonly List<ProductVariantAttributeValue> _attributeValues = new();
+    private readonly List<ProductVariantImage> _images = new();
     public int ProductId { get; private set; }
 
     public Product Product { get; private set; } = null!;
@@ -11,10 +12,11 @@ public class ProductVariant : BaseAuditableEntity
 
     public Percentage DiscountPercentage { get; private set; } = null!;
 
-    public Money SellingPrice => OriginalPrice.Multiply(1 - DiscountPercentage.Value / 100);
+    public Money SellingPrice => OriginalPrice.Multiply(1 - DiscountPercentage.ToDecimal());
 
     public IReadOnlyCollection<ProductVariantAttributeValue> AttributeValues =>
         _attributeValues.AsReadOnly();
+    public IReadOnlyCollection<ProductVariantImage> Images => _images.AsReadOnly();
 
     private ProductVariant()
     {
@@ -45,6 +47,26 @@ public class ProductVariant : BaseAuditableEntity
         {
             AddAttributeValue(attributeValueId);
         }
+    }
+
+    public void AddImage(int uploadedFileId, int displayOrder = 0)
+    {
+        if (_images.Any(x => x.UploadedFileId == uploadedFileId))
+            return;
+
+        var isMain = !_images.Any(x => x.IsMain);
+
+        _images.Add(new ProductVariantImage(uploadedFileId, isMain, displayOrder));
+    }
+
+    public void RemoveImage(int uploadedFileId)
+    {
+        var image = _images.FirstOrDefault(x => x.UploadedFileId == uploadedFileId);
+
+        if (image is null)
+            return;
+
+        _images.Remove(image);
     }
 
     public void AddAttributeValue(int attributeValueId)

@@ -2,6 +2,14 @@ namespace Fashia.Domain.Entities;
 
 public class ProductAttributeValue : BaseAuditableEntity
 {
+    public int AttributeId { get; private set; }
+
+    public ProductAttribute Attribute { get; private set; } = null!;
+
+    public string Value { get; private set; } = string.Empty;
+    public string Code { get; private set; } = string.Empty;
+    public string? HexValue { get; private set; }
+
     private ProductAttributeValue() { }
 
     public ProductAttributeValue(int attributeId, string value, string? hexValue = null)
@@ -15,12 +23,6 @@ public class ProductAttributeValue : BaseAuditableEntity
         AttributeId = attributeId;
     }
 
-    public int AttributeId { get; private set; }
-
-    public ProductAttribute Attribute { get; private set; } = null!;
-
-    public string Value { get; private set; } = string.Empty;
-    public string? HexValue { get; private set; }
     private void SetValue(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -34,7 +36,10 @@ public class ProductAttributeValue : BaseAuditableEntity
         var value = hexValue?.Trim();
 
         if (!string.IsNullOrEmpty(value) && value.Length > 7)
-            throw new ArgumentException("Hex value must not exceed 7 characters.", nameof(hexValue));
+            throw new ArgumentException(
+                "Hex value must not exceed 7 characters.",
+                nameof(hexValue)
+            );
 
         HexValue = string.IsNullOrWhiteSpace(value) ? null : value;
     }

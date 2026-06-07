@@ -1,4 +1,4 @@
-namespace Fashia.Web.Endpoints.Requests;
+namespace Fashia.Web.Endpoints.Categories.Requests;
 
 public class CreateCategoryRequest
 {
@@ -8,5 +8,5 @@ public class CreateCategoryRequest
 
     public int? ParentId { get; init; }
 
-    public IFormFile? Image { get; init; }
+    public string? ImageUrl { get; init; }
 }

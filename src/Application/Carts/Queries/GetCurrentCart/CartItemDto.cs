@@ -1,4 +1,4 @@
-namespace Fashia.Application.Carts.Queries;
+namespace Fashia.Application.Carts.Queries.GetCurrentCart;
 
 public sealed record CartItemDto
 {

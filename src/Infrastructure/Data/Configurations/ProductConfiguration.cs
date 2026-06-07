@@ -12,8 +12,6 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         builder.Property(x => x.Description).IsRequired().HasMaxLength(1000);
 
-        builder.Property(x => x.ImageUrl).HasMaxLength(500);
-
         builder.Property(x => x.Status).HasConversion<int>().IsRequired();
 
         builder
@@ -30,6 +28,12 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         builder
             .HasMany(x => x.Variants)
+            .WithOne(x => x.Product)
+            .HasForeignKey(x => x.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder
+            .HasMany(x => x.Images)
             .WithOne(x => x.Product)
             .HasForeignKey(x => x.ProductId)
             .OnDelete(DeleteBehavior.Cascade);

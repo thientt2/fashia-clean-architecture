@@ -19,6 +19,7 @@ public static class DependencyInjection
         builder.Services.AddHttpContextAccessor();
 
         builder.Services.AddExceptionHandler<ProblemDetailsExceptionHandler>();
+        builder.Services.AddProblemDetails();
 
         builder.Services.AddAntiforgery();
 

@@ -3,12 +3,11 @@ namespace Fashia.Domain.Entities;
 public class Product : BaseAuditableEntity
 {
     private readonly List<ProductVariant> _variants = new();
+    private readonly List<ProductImage> _images = new();
 
     public string Name { get; private set; } = string.Empty;
 
     public string Description { get; private set; } = string.Empty;
-
-    public string? ImageUrl { get; private set; }
 
     public int CategoryId { get; private set; }
 
@@ -21,6 +20,7 @@ public class Product : BaseAuditableEntity
     public ProductStatus Status { get; private set; }
 
     public IReadOnlyCollection<ProductVariant> Variants => _variants.AsReadOnly();
+    public IReadOnlyCollection<ProductImage> Images => _images.AsReadOnly();
 
     private Product()
     {
@@ -31,17 +31,28 @@ public class Product : BaseAuditableEntity
         string name,
         int categoryId,
         int brandId,
-        string? description = null,
-        string? imageUrl = null
+        string description,
+        List<int> uploadedImageIds
     )
     {
         SetName(name);
         SetCategory(categoryId);
         SetBrand(brandId);
         SetDescription(description);
-        SetImageUrl(imageUrl);
-
         Status = ProductStatus.Active;
+
+        if (uploadedImageIds is null || uploadedImageIds.Count == 0)
+            throw new ArgumentException(
+                "Product must have at least one image.",
+                nameof(uploadedImageIds)
+            );
+
+        var order = 0;
+        foreach (var imageId in uploadedImageIds)
+        {
+            AddImage(imageId, isMain: order == 0, displayOrder: order);
+            order++;
+        }
     }
 
     public void Rename(string name)
@@ -49,14 +60,30 @@ public class Product : BaseAuditableEntity
         SetName(name);
     }
 
-    public void UpdateDescription(string? description)
+    public void AddImage(int uploadedFileId, bool isMain = false, int displayOrder = 0)
+    {
+        if (_images.Any(x => x.UploadedFileId == uploadedFileId))
+            return;
+
+        if (isMain && _images.Any(x => x.IsMain))
+            throw new InvalidOperationException("Product already has a main image.");
+
+        _images.Add(new ProductImage(uploadedFileId, isMain, displayOrder));
+    }
+
+    public void UpdateDescription(string description)
     {
         SetDescription(description);
     }
 
-    public void UpdateImageUrl(string? imageUrl)
+    public void RemoveImage(int uploadedFileId)
     {
-        SetImageUrl(imageUrl);
+        var image = _images.FirstOrDefault(x => x.UploadedFileId == uploadedFileId);
+
+        if (image is null)
+            return;
+
+        _images.Remove(image);
     }
 
     public void ChangeCategory(int categoryId)
@@ -85,11 +112,11 @@ public class Product : BaseAuditableEntity
         Status = ProductStatus.Inactive;
     }
 
-    public void AddVariant(Money originalPrice, IEnumerable<int> attributeValueIds)
+    public ProductVariant AddVariant(Money originalPrice, IEnumerable<int> attributeValueIds)
     {
         var variant = new ProductVariant(originalPrice, attributeValueIds);
-
         _variants.Add(variant);
+        return variant;
     }
 
     private void SetName(string name)
@@ -108,7 +135,7 @@ public class Product : BaseAuditableEntity
         Name = value;
     }
 
-    private void SetDescription(string? description)
+    private void SetDescription(string description)
     {
         var value = description?.Trim() ?? string.Empty;
 
@@ -119,19 +146,6 @@ public class Product : BaseAuditableEntity
             );
 
         Description = value;
-    }
-
-    private void SetImageUrl(string? imageUrl)
-    {
-        var value = imageUrl?.Trim();
-
-        if (!string.IsNullOrEmpty(value) && value.Length > 500)
-            throw new ArgumentException(
-                "Product image URL must not exceed 500 characters.",
-                nameof(imageUrl)
-            );
-
-        ImageUrl = string.IsNullOrWhiteSpace(value) ? null : value;
     }
 
     private void SetCategory(int categoryId)

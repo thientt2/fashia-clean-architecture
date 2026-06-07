@@ -4,19 +4,21 @@ namespace Fashia.Domain.ValueObjects;
 
 public sealed class Money : ValueObject
 {
-    private Money(decimal amount)
+    public Money() { }
+
+    private Money(long amount)
     {
         Amount = amount;
     }
 
-    public decimal Amount { get; }
+    public long Amount { get; init; }
 
-    public static Money Create(decimal amount)
+    public static Money Create(long amount)
     {
         if (amount < 0)
             throw new ArgumentException("Money cannot be negative.");
 
-        return new Money(decimal.Round(amount, 2, MidpointRounding.AwayFromZero));
+        return new Money(amount);
     }
 
     public static Money Zero => new(0);
@@ -36,7 +38,8 @@ public sealed class Money : ValueObject
 
     public Money Multiply(decimal factor)
     {
-        return Create(Amount * factor);
+        var result = (long)Math.Round(Amount * factor, MidpointRounding.AwayFromZero);
+        return Create(result);
     }
 
     protected override IEnumerable<object> GetEqualityComponents()

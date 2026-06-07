@@ -1,17 +1,17 @@
 using Fashia.Application.Categories.Commands.ActivateCategory;
 using Fashia.Application.Categories.Commands.CreateCategory;
-using Fashia.Application.Categories.Commands.DeleteCategory;
 using Fashia.Application.Categories.Commands.DeactivateCategory;
+using Fashia.Application.Categories.Commands.DeleteCategory;
 using Fashia.Application.Categories.Commands.UpdateCategory;
 using Fashia.Application.Categories.Queries.GetCategories;
 using Fashia.Application.Categories.Queries.GetCategoryById;
-using Fashia.Domain.Constants;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Fashia.Application.Common.Interfaces;
-using Fashia.Web.Endpoints.Requests;
+using Fashia.Domain.Constants;
+using Fashia.Web.Endpoints.Categories.Requests;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Fashia.Web.Endpoints;
+namespace Fashia.Web.Endpoints.Categories;
 
 public class Categories : IEndpointGroup
 {
@@ -22,20 +22,25 @@ public class Categories : IEndpointGroup
         groupBuilder.MapGet(GetCategories);
         groupBuilder.MapGet(GetCategoryById, "{id:int}");
 
-        groupBuilder.MapPost(CreateCategory)
+        groupBuilder
+            .MapPost(CreateCategory)
             .DisableAntiforgery()
             .RequireAuthorization(Policies.CanManageCategories);
 
-        groupBuilder.MapPut(UpdateCategory, "{id:int}")
+        groupBuilder
+            .MapPut(UpdateCategory, "{id:int}")
             .RequireAuthorization(Policies.CanManageCategories);
 
-        groupBuilder.MapDelete(DeleteCategory, "{id:int}")
+        groupBuilder
+            .MapDelete(DeleteCategory, "{id:int}")
             .RequireAuthorization(Policies.CanManageCategories);
 
-        groupBuilder.MapPatch("/activate/{id:int}", ActivateCategory)
+        groupBuilder
+            .MapPatch("/activate/{id:int}", ActivateCategory)
             .RequireAuthorization(Policies.CanManageCategories);
 
-        groupBuilder.MapPatch("/deactivate/{id:int}", DeactivateCategory)
+        groupBuilder
+            .MapPatch("/deactivate/{id:int}", DeactivateCategory)
             .RequireAuthorization(Policies.CanManageCategories);
     }
 
@@ -52,13 +57,12 @@ public class Categories : IEndpointGroup
     [EndpointDescription("Retrieves a category by id.")]
     public static async Task<Results<Ok<CategoryDto>, NotFound>> GetCategoryById(
         ISender sender,
-        int id)
+        int id
+    )
     {
         var category = await sender.Send(new GetCategoryByIdQuery(id));
 
-        return category is null
-            ? TypedResults.NotFound()
-            : TypedResults.Ok(category);
+        return category is null ? TypedResults.NotFound() : TypedResults.Ok(category);
     }
 
     [EndpointSummary("Create Category")]
@@ -66,29 +70,20 @@ public class Categories : IEndpointGroup
     public static async Task<Created<int>> CreateCategory(
         ISender sender,
         IFileStorageService fileStorageService,
-        [FromForm] CreateCategoryRequest request,
-        CancellationToken cancellationToken)
+        CreateCategoryRequest request,
+        CancellationToken cancellationToken
+    )
     {
-        string? imageUrl = null;
-
-        if (request.Image is not null)
-        {
-            imageUrl = await fileStorageService.UploadAsync(
-                request.Image.OpenReadStream(),
-                request.Image.FileName,
-                request.Image.ContentType,
-                "categories",
-                cancellationToken);
-        }
-
-        var id = await sender.Send(new CreateCategoryCommand
-        {
-            Name = request.Name,
-            Description = request.Description,
-            ImageUrl = imageUrl,
-            ParentId = request.ParentId
-        }, cancellationToken);
-
+        var id = await sender.Send(
+            new CreateCategoryCommand
+            {
+                Name = request.Name,
+                Description = request.Description,
+                ImageUrl = request.ImageUrl,
+                ParentId = request.ParentId,
+            },
+            cancellationToken
+        );
 
         return TypedResults.Created($"/api/categories/{id}", id);
     }
@@ -98,7 +93,8 @@ public class Categories : IEndpointGroup
     public static async Task<NoContent> UpdateCategory(
         ISender sender,
         int id,
-        UpdateCategoryCommand command)
+        UpdateCategoryCommand command
+    )
     {
         if (id != command.Id)
             throw new InvalidOperationException("Route id does not match command id.");
@@ -110,9 +106,7 @@ public class Categories : IEndpointGroup
 
     [EndpointSummary("Delete Category")]
     [EndpointDescription("Deletes an existing category.")]
-    public static async Task<NoContent> DeleteCategory(
-        ISender sender,
-        int id)
+    public static async Task<NoContent> DeleteCategory(ISender sender, int id)
     {
         await sender.Send(new DeleteCategoryCommand(id));
 
@@ -121,9 +115,7 @@ public class Categories : IEndpointGroup
 
     [EndpointSummary("Activate Category")]
     [EndpointDescription("Activates a category.")]
-    public static async Task<NoContent> ActivateCategory(
-        ISender sender,
-        int id)
+    public static async Task<NoContent> ActivateCategory(ISender sender, int id)
     {
         await sender.Send(new ActivateCategoryCommand(id));
 
@@ -132,9 +124,7 @@ public class Categories : IEndpointGroup
 
     [EndpointSummary("Deactivate Category")]
     [EndpointDescription("Deactivates a category.")]
-    public static async Task<NoContent> DeactivateCategory(
-        ISender sender,
-        int id)
+    public static async Task<NoContent> DeactivateCategory(ISender sender, int id)
     {
         await sender.Send(new DeactivateCategoryCommand(id));
 

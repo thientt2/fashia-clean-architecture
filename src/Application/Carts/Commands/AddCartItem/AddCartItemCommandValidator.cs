@@ -5,6 +5,7 @@ public sealed class AddCartItemCommandValidator : AbstractValidator<AddCartItemC
     public AddCartItemCommandValidator()
     {
         RuleFor(x => x.ProductVariantId).GreaterThan(0);
+
         RuleFor(x => x.Quantity).GreaterThan(0);
     }
 }

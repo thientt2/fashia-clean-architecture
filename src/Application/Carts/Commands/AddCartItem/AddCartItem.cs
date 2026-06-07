@@ -1,6 +1,7 @@
 using Fashia.Application.Carts.Common;
-using Fashia.Application.Carts.Queries;
+using Fashia.Application.Carts.Queries.GetCurrentCart;
 using Fashia.Application.Common.Interfaces;
+using Fashia.Domain.Entities;
 
 namespace Fashia.Application.Carts.Commands.AddCartItem;
 
@@ -26,19 +27,40 @@ public sealed class AddCartItemCommandHandler : IRequestHandler<AddCartItemComma
         CancellationToken cancellationToken
     )
     {
-        await CartHelpers.ValidateProductVariantAsync(
-            _context,
-            request.ProductVariantId,
+        var productVariantExists = await _context.ProductVariants.AnyAsync(
+            x => x.Id == request.ProductVariantId,
             cancellationToken
         );
 
-        var customerId = await CartHelpers.ResolveCustomerIdAsync(_context, _user, cancellationToken);
-        var cart = await CartHelpers.FindCartAsync(_context, customerId, true, cancellationToken);
+        if (!productVariantExists)
+        {
+            throw new InvalidOperationException("Product variant not found.");
+        }
 
-        cart!.AddItem(request.ProductVariantId, request.Quantity);
+        var customerId = await _context
+            .Customers.Where(x => x.UserId == _user.Id)
+            .Select(x => x.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (customerId == 0)
+        {
+            throw new UnauthorizedAccessException("Customer account is required.");
+        }
+
+        var cart = await _context
+            .Carts.Include(x => x.Items)
+            .FirstOrDefaultAsync(x => x.CustomerId == customerId, cancellationToken);
+
+        if (cart is null)
+        {
+            cart = new Cart(customerId);
+            _context.Carts.Add(cart);
+        }
+
+        cart.AddItem(request.ProductVariantId, request.Quantity);
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return (await CartHelpers.ProjectCartAsync(_context, cart.Id, cancellationToken))!;
+        return (await CartProjection.ProjectCartAsync(_context, cart.Id, cancellationToken))!;
     }
 }

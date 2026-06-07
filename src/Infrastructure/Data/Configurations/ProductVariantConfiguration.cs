@@ -23,7 +23,10 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
             x => x.OriginalPrice,
             price =>
             {
-                price.Property(p => p.Amount).HasColumnName("OriginalPrice").HasPrecision(18, 2);
+                price
+                    .Property(p => p.Amount)
+                    .HasColumnName("OriginalPrice")
+                    .HasColumnType("bigint");
             }
         );
 
@@ -31,6 +34,12 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
 
         builder
             .HasMany(x => x.AttributeValues)
+            .WithOne(x => x.ProductVariant)
+            .HasForeignKey(x => x.ProductVariantId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder
+            .HasMany(x => x.Images)
             .WithOne(x => x.ProductVariant)
             .HasForeignKey(x => x.ProductVariantId)
             .OnDelete(DeleteBehavior.Cascade);

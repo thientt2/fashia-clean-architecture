@@ -4,13 +4,15 @@ using Fashia.Application.Common.Models;
 using Fashia.Application.Products.Commands.CreateProduct;
 using Fashia.Application.Products.Commands.DeleteProduct;
 using Fashia.Application.Products.Commands.UpdateProduct;
-using Fashia.Application.Products.Queries;
+using Fashia.Application.Products.Queries.Common;
+using Fashia.Application.Products.Queries.GetProductByIdQuery;
+using Fashia.Application.Products.Queries.GetProductsQuery;
 using Fashia.Domain.Constants;
-using Fashia.Web.Endpoints.Requests;
+using Fashia.Web.Endpoints.Products.Requests;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Fashia.Web.Endpoints;
+namespace Fashia.Web.Endpoints.Products;
 
 public class Products : IEndpointGroup
 {
@@ -25,7 +27,7 @@ public class Products : IEndpointGroup
             .RequireAuthorization(Policies.CanManageProducts);
 
         groupBuilder
-            .MapPut(UpdateProduct, "{id:int}")
+            .MapPatch(UpdateProduct, "{id:int}")
             .RequireAuthorization(Policies.CanManageProducts);
 
         groupBuilder
@@ -58,73 +60,54 @@ public class Products : IEndpointGroup
     [EndpointDescription(
         "Creates a new product using the provided details and returns the ID of the created product."
     )]
-    public static async Task<Results<Created<int>, BadRequest<string>>> CreateProduct(
+    public static async Task<Created<int>> CreateProduct(
         ISender sender,
-        [FromForm] CreateProductRequest request,
+        CreateProductRequest request,
         CancellationToken cancellationToken
     )
     {
-        List<CreateProductVariantRequest> variantRequests;
-
-        try
+        var command = new CreateProductCommand
         {
-            variantRequests =
-                JsonSerializer.Deserialize<List<CreateProductVariantRequest>>(
-                    request.Variants,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-                ) ?? [];
-        }
-        catch (JsonException)
-        {
-            return TypedResults.BadRequest("Invalid variants JSON format.");
-        }
+            Name = request.Name,
+            Description = request.Description,
+            UploadedImageIds = request.UploadedImageIds,
+            CategoryId = request.CategoryId,
+            BrandId = request.BrandId,
+            Variants = request
+                .Variants.Select(x => new CreateProductVariantDto
+                {
+                    OriginalPrice = x.OriginalPrice,
+                    UploadedImageIds = x.UploadedImageIds,
+                    AttributeValueIds = x.AttributeValueIds,
+                })
+                .ToList(),
+        };
 
-        if (variantRequests.Count == 0)
-        {
-            return TypedResults.BadRequest("At least one product variant is required.");
-        }
-
-        var id = await sender.Send(
-            new CreateProductCommand
-            {
-                Name = request.Name,
-                Description = request.Description,
-                Image = request.Image is not null
-                    ? new FileUpload(
-                        request.Image.OpenReadStream(),
-                        request.Image.FileName,
-                        request.Image.ContentType
-                    )
-                    : null,
-                CategoryId = request.CategoryId,
-                BrandId = request.BrandId,
-                Variants = variantRequests
-                    .Select(x => new CreateProductVariantDto
-                    {
-                        OriginalPrice = x.OriginalPrice,
-                        StockQuantity = x.StockQuantity,
-                        AttributeValueIds = x.AttributeValueIds,
-                    })
-                    .ToList(),
-            },
-            cancellationToken
-        );
+        var id = await sender.Send(command, cancellationToken);
 
         return TypedResults.Created($"/api/products/{id}", id);
     }
 
     [EndpointSummary("Update Product")]
     [EndpointDescription("Updates an existing product.")]
-    public static async Task<Results<NoContent, BadRequest>> UpdateProduct(
+    public static async Task<Results<NoContent, NotFound>> UpdateProduct(
         ISender sender,
         int id,
-        UpdateProductCommand command
+        UpdateProductRequest request,
+        CancellationToken cancellationToken
     )
     {
-        if (command.Id != 0 && id != command.Id)
-            return TypedResults.BadRequest();
+        var command = new UpdateProductCommand
+        {
+            Id = id, // inject từ route
+            Name = request.Name,
+            Description = request.Description,
+            CategoryId = request.CategoryId,
+            BrandId = request.BrandId,
+            NewUploadedImageIds = request.NewUploadedImageIds,
+        };
 
-        await sender.Send(command with { Id = id });
+        await sender.Send(command, cancellationToken);
 
         return TypedResults.NoContent();
     }

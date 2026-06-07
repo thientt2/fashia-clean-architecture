@@ -11,88 +11,129 @@ public class CloudinaryStorageService : IFileStorageService
 
     public CloudinaryStorageService(IConfiguration configuration)
     {
-        var cloudName = configuration["Cloudinary:CloudName"]
+        var cloudName =
+            configuration["Cloudinary:CloudName"]
             ?? throw new InvalidOperationException("Cloudinary cloud name is not configured.");
 
-        var apiKey = configuration["Cloudinary:ApiKey"]
+        var apiKey =
+            configuration["Cloudinary:ApiKey"]
             ?? throw new InvalidOperationException("Cloudinary API key is not configured.");
 
-        var apiSecret = configuration["Cloudinary:ApiSecret"]
+        var apiSecret =
+            configuration["Cloudinary:ApiSecret"]
             ?? throw new InvalidOperationException("Cloudinary API secret is not configured.");
 
         var account = new Account(cloudName, apiKey, apiSecret);
 
-        _cloudinary = new Cloudinary(account)
-        {
-            Api =
-            {
-                Secure = true
-            }
-        };
+        _cloudinary = new Cloudinary(account) { Api = { Secure = true } };
     }
 
-    public async Task<string> UploadAsync(
-        Stream stream,
+    // public async Task<string> UploadAsync(
+    //     Stream stream,
+    //     string fileName,
+    //     string contentType,
+    //     string folder,
+    //     CancellationToken cancellationToken
+    // )
+    // {
+    //     if (stream.Length == 0)
+    //         throw new ArgumentException("File is empty.", nameof(stream));
+
+    //     var extension = Path.GetExtension(fileName);
+    //     var publicId = $"{Path.GetFileNameWithoutExtension(fileName)}-{Guid.NewGuid():N}";
+
+    //     var uploadParams = new ImageUploadParams
+    //     {
+    //         File = new FileDescription(fileName, stream),
+    //         Folder = folder,
+    //         PublicId = publicId,
+    //         UseFilename = false,
+    //         UniqueFilename = false,
+    //         Overwrite = false,
+    //         AllowedFormats = new[] { "jpg", "jpeg", "png", "webp" },
+    //     };
+
+    //     var result = await _cloudinary.UploadAsync(uploadParams, cancellationToken);
+
+    //     if (result.Error is not null)
+    //         throw new InvalidOperationException(result.Error.Message);
+
+    //     return result.SecureUrl?.ToString()
+    //         ?? throw new InvalidOperationException("Cloudinary did not return a secure URL.");
+    // }
+
+    // public async Task DeleteAsync(string fileUrl, CancellationToken cancellationToken = default)
+    // {
+    //     if (string.IsNullOrWhiteSpace(fileUrl))
+    //         return;
+
+    //     var uri = new Uri(fileUrl);
+
+    //     var segments = uri.AbsolutePath.Split('/');
+
+    //     var uploadIndex = Array.IndexOf(segments, "upload");
+
+    //     if (uploadIndex == -1)
+    //         return;
+
+    //     var publicIdSegments = segments.Skip(uploadIndex + 2).ToArray();
+
+    //     var publicIdWithExtension = string.Join('/', publicIdSegments);
+
+    //     var publicId = Path.Combine(
+    //             Path.GetDirectoryName(publicIdWithExtension) ?? string.Empty,
+    //             Path.GetFileNameWithoutExtension(publicIdWithExtension)
+    //         )
+    //         .Replace("\\", "/");
+
+    //     var deleteParams = new DeletionParams(publicId);
+
+    //     await _cloudinary.DestroyAsync(deleteParams);
+    // }
+
+    public async Task<UploadedFileResult> UploadImageAsync(
+        Stream fileStream,
         string fileName,
         string contentType,
         string folder,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        if (stream.Length == 0)
-            throw new ArgumentException("File is empty.", nameof(stream));
-
-        var extension = Path.GetExtension(fileName);
-        var publicId = $"{Path.GetFileNameWithoutExtension(fileName)}-{Guid.NewGuid():N}";
+        var uniqueFileName = $"{Guid.NewGuid():N}_{Path.GetFileNameWithoutExtension(fileName)}";
 
         var uploadParams = new ImageUploadParams
         {
-            File = new FileDescription(fileName, stream),
+            File = new FileDescription(fileName, fileStream),
             Folder = folder,
-            PublicId = publicId,
+            PublicId = uniqueFileName,
+            Overwrite = false,
             UseFilename = false,
             UniqueFilename = false,
-            Overwrite = false,
-            AllowedFormats = new[] { "jpg", "jpeg", "png", "webp" }
         };
 
         var result = await _cloudinary.UploadAsync(uploadParams, cancellationToken);
 
         if (result.Error is not null)
+        {
             throw new InvalidOperationException(result.Error.Message);
+        }
 
-        return result.SecureUrl?.ToString()
-            ?? throw new InvalidOperationException("Cloudinary did not return a secure URL.");
+        return new UploadedFileResult(
+            FileName: uniqueFileName,
+            Url: result.SecureUrl.ToString(),
+            PublicId: result.PublicId
+        );
     }
 
-    public async Task DeleteAsync(
-        string fileUrl,
-        CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(string publicId, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(fileUrl))
-            return;
-
-        var uri = new Uri(fileUrl);
-
-        var segments = uri.AbsolutePath.Split('/');
-
-        var uploadIndex = Array.IndexOf(segments, "upload");
-
-        if (uploadIndex == -1)
-            return;
-
-        var publicIdSegments = segments
-            .Skip(uploadIndex + 2)
-            .ToArray();
-
-        var publicIdWithExtension = string.Join('/', publicIdSegments);
-
-        var publicId = Path.Combine(
-                Path.GetDirectoryName(publicIdWithExtension) ?? string.Empty,
-                Path.GetFileNameWithoutExtension(publicIdWithExtension))
-            .Replace("\\", "/");
-
         var deleteParams = new DeletionParams(publicId);
 
-        await _cloudinary.DestroyAsync(deleteParams);
+        var result = await _cloudinary.DestroyAsync(deleteParams);
+
+        if (result.Error is not null)
+        {
+            throw new InvalidOperationException(result.Error.Message);
+        }
     }
 }

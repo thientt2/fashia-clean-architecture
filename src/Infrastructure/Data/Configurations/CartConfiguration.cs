@@ -9,8 +9,6 @@ public class CartConfiguration : IEntityTypeConfiguration<Cart>
 {
     public void Configure(EntityTypeBuilder<Cart> builder)
     {
-        builder.Property(x => x.Status).HasConversion<int>().IsRequired();
-
         builder
             .HasOne(x => x.Customer)
             .WithMany()

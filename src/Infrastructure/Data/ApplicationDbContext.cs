@@ -31,6 +31,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<OrderVoucher> OrderVouchers => Set<OrderVoucher>();
     public DbSet<Voucher> Vouchers => Set<Voucher>();
     public DbSet<CustomerVoucher> CustomerVouchers => Set<CustomerVoucher>();
+    public DbSet<UploadedFile> UploadedFiles => Set<UploadedFile>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

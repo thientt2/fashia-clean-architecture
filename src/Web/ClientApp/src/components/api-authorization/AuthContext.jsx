@@ -1,9 +1,10 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { UsersClient, LoginRequest, RegisterRequest } from '../../web-api-client';
+import { AuthClient, UsersClient, LoginRequest, RegisterCustomerCommand } from '../../web-api-client';
 
 const AuthContext = createContext(null);
 
 const client = new UsersClient();
+const authClient = new AuthClient();
 
 export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -20,8 +21,13 @@ export function AuthProvider({ children }) {
     client.login(true, undefined, new LoginRequest({ email, password }))
       .then(() => setIsAuthenticated(true));
 
-  const register = (email, password) =>
-    client.register(new RegisterRequest({ email, password }));
+  const register = (email, password, firstName, lastName) =>
+    authClient.registerCustomer(new RegisterCustomerCommand({
+      email,
+      password,
+      firstName,
+      lastName
+    }));
 
   const logout = () =>
     client.logout({})

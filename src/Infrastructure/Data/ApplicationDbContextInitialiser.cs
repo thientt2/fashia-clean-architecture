@@ -258,6 +258,9 @@ public class ApplicationDbContextInitialiser
             _context.Brands.Add(new Brand("Adidas", "Thương hiệu thể thao nổi tiếng"));
             _context.Brands.Add(new Brand("Zara", "Thương hiệu thời trang nổi tiếng"));
             _context.Brands.Add(new Brand("H&M", "Thương hiệu thời trang nổi tiếng"));
+            _context.Brands.Add(
+                new Brand("Phúc An Fashion", "Một thương hiệu thời trang Việt Nam")
+            );
 
             await _context.SaveChangesAsync();
         }
@@ -307,6 +310,24 @@ public class ApplicationDbContextInitialiser
                 _context.AttributeValues.Add(new ProductAttributeValue(sizeAttribute.Id, "M"));
                 _context.AttributeValues.Add(new ProductAttributeValue(sizeAttribute.Id, "L"));
                 _context.AttributeValues.Add(new ProductAttributeValue(sizeAttribute.Id, "XL"));
+                _context.AttributeValues.Add(new ProductAttributeValue(sizeAttribute.Id, "XXL"));
+                _context.AttributeValues.Add(new ProductAttributeValue(sizeAttribute.Id, "2XL"));
+                _context.AttributeValues.Add(new ProductAttributeValue(sizeAttribute.Id, "3XL"));
+                _context.AttributeValues.Add(new ProductAttributeValue(sizeAttribute.Id, "4XL"));
+                _context.AttributeValues.Add(
+                    new ProductAttributeValue(sizeAttribute.Id, "Free Size")
+                );
+                _context.AttributeValues.Add(new ProductAttributeValue(sizeAttribute.Id, "26"));
+                _context.AttributeValues.Add(new ProductAttributeValue(sizeAttribute.Id, "27"));
+                _context.AttributeValues.Add(new ProductAttributeValue(sizeAttribute.Id, "28"));
+                _context.AttributeValues.Add(new ProductAttributeValue(sizeAttribute.Id, "29"));
+                _context.AttributeValues.Add(new ProductAttributeValue(sizeAttribute.Id, "30"));
+                _context.AttributeValues.Add(new ProductAttributeValue(sizeAttribute.Id, "31"));
+                _context.AttributeValues.Add(new ProductAttributeValue(sizeAttribute.Id, "32"));
+                _context.AttributeValues.Add(new ProductAttributeValue(sizeAttribute.Id, "33"));
+                _context.AttributeValues.Add(new ProductAttributeValue(sizeAttribute.Id, "34"));
+                _context.AttributeValues.Add(new ProductAttributeValue(sizeAttribute.Id, "35"));
+                _context.AttributeValues.Add(new ProductAttributeValue(sizeAttribute.Id, "36"));
             }
 
             if (materialAttribute != null)
@@ -324,6 +345,47 @@ public class ApplicationDbContextInitialiser
                     new ProductAttributeValue(materialAttribute.Id, "Denim")
                 );
             }
+            await _context.SaveChangesAsync();
+        }
+
+        // Seed Uploaded files
+        if (!_context.UploadedFiles.Any())
+        {
+            _context.UploadedFiles.Add(
+                new UploadedFile(
+                    fileName: "4424ae5b88f442b5b16251764116f493_8a74966c70a19c149e693be1d8fea0fb",
+                    originalFileName: "8a74966c70a19c149e693be1d8fea0fb.jpg",
+                    contentType: "image/jpg",
+                    sizeInBytes: 204715,
+                    url: "	https://res.cloudinary.com/dln6n09l2/image/upload/v1780836893/temporary/products/4424ae5b88f442b5b16251764116f493_8a74966c70a19c149e693be1d8fea0fb.jpg",
+                    publicId: "4424ae5b88f442b5b16251764116f493_8a74966c70a19c149e693be1d8fea0fb",
+                    folder: "temporary/products"
+                )
+            );
+
+            _context.UploadedFiles.Add(
+                new UploadedFile(
+                    fileName: "5b2c5078f5d743f3a7052e889da0b7fd_43738243b8b7d9ced86cdbd41305f14e",
+                    originalFileName: "43738243b8b7d9ced86cdbd41305f14e.jpg",
+                    contentType: "image/jpg",
+                    sizeInBytes: 204715,
+                    url: "https://res.cloudinary.com/dln6n09l2/image/upload/v1780817727/temporary/products/5b2c5078f5d743f3a7052e889da0b7fd_43738243b8b7d9ced86cdbd41305f14e.jpg",
+                    publicId: "5b2c5078f5d743f3a7052e889da0b7fd_43738243b8b7d9ced86cdbd41305f14e",
+                    folder: "temporary/products"
+                )
+            );
+
+            _context.UploadedFiles.Add(
+                new UploadedFile(
+                    fileName: "044a9ac3b241429c8e461ce3f6f65b1d_78fbc6c88d59fecb699bced3118fe56a",
+                    originalFileName: "78fbc6c88d59fecb699bced3118fe56a.jpg",
+                    contentType: "image/jpg",
+                    sizeInBytes: 204715,
+                    url: "https://res.cloudinary.com/dln6n09l2/image/upload/v1780817711/temporary/products/044a9ac3b241429c8e461ce3f6f65b1d_78fbc6c88d59fecb699bced3118fe56a.jpg",
+                    publicId: "044a9ac3b241429c8e461ce3f6f65b1d_78fbc6c88d59fecb699bced3118fe56a",
+                    folder: "temporary/products"
+                )
+            );
 
             await _context.SaveChangesAsync();
         }

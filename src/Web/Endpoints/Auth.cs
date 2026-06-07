@@ -1,3 +1,4 @@
+using System.Net.NetworkInformation;
 using Fashia.Application.Auth.Commands.RegisterCustomer;
 using Fashia.Infrastructure.Identity;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -10,7 +11,7 @@ public class Auth : IEndpointGroup
 {
     public static void Map(RouteGroupBuilder groupBuilder)
     {
-        groupBuilder.MapPost(RegisterCustomer, "register-customer").RequireAuthorization();
+        groupBuilder.MapPost(RegisterCustomer, "register-customer");
     }
 
     [EndpointSummary("Register Customer")]

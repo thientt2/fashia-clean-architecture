@@ -1,6 +1,7 @@
 using Fashia.Domain.Entities;
 
-namespace Fashia.Application.Products.Queries;
+namespace Fashia.Application.Products.Queries.Common;
+
 public sealed class ProductVariantAttributeValueDto
 {
     public int Id { get; init; }
@@ -15,7 +16,10 @@ public sealed class ProductVariantAttributeValueDto
         {
             CreateMap<ProductVariantAttributeValue, ProductVariantAttributeValueDto>()
                 .ForMember(dest => dest.Value, opt => opt.MapFrom(src => src.AttributeValue.Value))
-                .ForMember(dest => dest.HexValue, opt => opt.MapFrom(src => src.AttributeValue.HexValue));
+                .ForMember(
+                    dest => dest.HexValue,
+                    opt => opt.MapFrom(src => src.AttributeValue.HexValue)
+                );
         }
     }
 }

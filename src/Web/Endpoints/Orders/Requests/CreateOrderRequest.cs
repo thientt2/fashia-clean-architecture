@@ -1,4 +1,4 @@
-namespace Fashia.Web.Endpoints.Requests;
+namespace Fashia.Web.Endpoints.Orders.Requests;
 
 public sealed record CreateOrderRequest
 {
