@@ -15,6 +15,7 @@ public interface IApplicationDbContext
     DbSet<BranchVariantInventory> BranchVariantInventories { get; }
     DbSet<InventoryTransaction> InventoryTransactions { get; }
     DbSet<Customer> Customers { get; }
+    DbSet<CustomerAddress> CustomerAddresses { get; }
     DbSet<Cart> Carts { get; }
     DbSet<CartItem> CartItems { get; }
     DbSet<Order> Orders { get; }

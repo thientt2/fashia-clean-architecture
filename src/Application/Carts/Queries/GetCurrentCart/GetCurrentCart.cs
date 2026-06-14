@@ -1,5 +1,7 @@
 using Fashia.Application.Carts.Common;
 using Fashia.Application.Common.Interfaces;
+using Fashia.Domain.Enums;
+using Microsoft.Extensions.Logging;
 
 namespace Fashia.Application.Carts.Queries.GetCurrentCart;
 
@@ -9,11 +11,17 @@ public sealed class GetCurrentCartQueryHandler : IRequestHandler<GetCurrentCartQ
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _user;
+    private readonly ILogger<GetCurrentCartQueryHandler> _logger;
 
-    public GetCurrentCartQueryHandler(IApplicationDbContext context, IUser user)
+    public GetCurrentCartQueryHandler(
+        IApplicationDbContext context,
+        IUser user,
+        ILogger<GetCurrentCartQueryHandler> logger
+    )
     {
         _context = context;
         _user = user;
+        _logger = logger;
     }
 
     public async Task<CartDto> Handle(
@@ -28,7 +36,7 @@ public sealed class GetCurrentCartQueryHandler : IRequestHandler<GetCurrentCartQ
 
         if (customerId == 0)
         {
-            return CartDto.Empty();
+            throw new UnauthorizedAccessException("Customer account is required.");
         }
 
         var cart = await _context

@@ -9,6 +9,7 @@ public class CartItemConfiguration : IEntityTypeConfiguration<CartItem>
     public void Configure(EntityTypeBuilder<CartItem> builder)
     {
         builder.Property(x => x.Quantity).IsRequired();
+        builder.Property(x => x.UnitPrice).HasPrecision(18, 2).IsRequired();
 
         builder.HasIndex(x => new { x.CartId, x.ProductVariantId }).IsUnique();
 

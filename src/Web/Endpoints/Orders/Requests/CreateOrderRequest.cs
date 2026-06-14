@@ -1,3 +1,5 @@
+using Fashia.Domain.Enums;
+
 namespace Fashia.Web.Endpoints.Orders.Requests;
 
 public sealed record CreateOrderRequest
@@ -20,15 +22,8 @@ public sealed record CreateOrderItemRequest
 
 public sealed record CheckoutOrderRequest
 {
-    public int BranchId { get; init; }
-
-    public string? VoucherCode { get; init; }
-
-    public string CustomerName { get; init; } = string.Empty;
-
-    public string? CustomerEmail { get; init; }
-
-    public string CustomerPhone { get; init; } = string.Empty;
-
-    public string ShippingAddress { get; init; } = string.Empty;
+    public List<int> CartItemIds { get; init; } = [];
+    public int ShippingAddressId { get; init; }
+    public PaymentMethod PaymentMethod { get; init; }
+    public string? Note { get; init; }
 }

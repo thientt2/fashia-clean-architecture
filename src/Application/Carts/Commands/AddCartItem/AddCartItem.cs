@@ -2,6 +2,7 @@ using Fashia.Application.Carts.Common;
 using Fashia.Application.Carts.Queries.GetCurrentCart;
 using Fashia.Application.Common.Interfaces;
 using Fashia.Domain.Entities;
+using Fashia.Domain.Enums;
 
 namespace Fashia.Application.Carts.Commands.AddCartItem;
 
@@ -27,14 +28,18 @@ public sealed class AddCartItemCommandHandler : IRequestHandler<AddCartItemComma
         CancellationToken cancellationToken
     )
     {
-        var productVariantExists = await _context.ProductVariants.AnyAsync(
-            x => x.Id == request.ProductVariantId,
-            cancellationToken
-        );
+        var productVariant = await _context
+            .ProductVariants.Include(x => x.Product)
+            .FirstOrDefaultAsync(x => x.Id == request.ProductVariantId, cancellationToken);
 
-        if (!productVariantExists)
+        if (productVariant is null)
         {
             throw new InvalidOperationException("Product variant not found.");
+        }
+
+        if (productVariant.Product.Status != ProductStatus.Active)
+        {
+            throw new InvalidOperationException("Product is not active.");
         }
 
         var customerId = await _context
@@ -53,11 +58,38 @@ public sealed class AddCartItemCommandHandler : IRequestHandler<AddCartItemComma
 
         if (cart is null)
         {
-            cart = new Cart(customerId);
+            cart = Cart.Create(customerId);
             _context.Carts.Add(cart);
         }
 
-        cart.AddItem(request.ProductVariantId, request.Quantity);
+        var requestedQuantity =
+            cart.Items.FirstOrDefault(x => x.ProductVariantId == request.ProductVariantId)?.Quantity
+            ?? 0;
+        requestedQuantity += request.Quantity;
+
+        var inventoryQuery = _context.BranchVariantInventories.Where(x =>
+            x.ProductVariantId == request.ProductVariantId
+        );
+        var hasInventory = await inventoryQuery.AnyAsync(cancellationToken);
+
+        if (hasInventory)
+        {
+            var availableQuantity = await inventoryQuery.SumAsync(
+                x => x.StockQuantity,
+                cancellationToken
+            );
+
+            if (availableQuantity < requestedQuantity)
+            {
+                throw new InvalidOperationException("Insufficient inventory.");
+            }
+        }
+
+        cart.AddItem(
+            request.ProductVariantId,
+            request.Quantity,
+            productVariant.SellingPrice.Amount
+        );
 
         await _context.SaveChangesAsync(cancellationToken);
 

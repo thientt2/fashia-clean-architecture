@@ -1,6 +1,7 @@
 using Fashia.Application.Common.Interfaces;
 using Fashia.Domain.Constants;
 using Fashia.Domain.Entities;
+using Fashia.Domain.ValueObjects;
 using MediatR;
 
 namespace Fashia.Application.Auth.Commands.RegisterCustomer;
@@ -14,6 +15,8 @@ public record RegisterCustomerCommand : IRequest<int>
     public string FirstName { get; init; } = string.Empty;
 
     public string LastName { get; init; } = string.Empty;
+
+    public string PhoneNumber { get; init; } = string.Empty;
 }
 
 public class RegisterCustomerCommandHandler : IRequestHandler<RegisterCustomerCommand, int>
@@ -41,23 +44,42 @@ public class RegisterCustomerCommandHandler : IRequestHandler<RegisterCustomerCo
             request.Password
         );
 
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            throw new InvalidOperationException("Failed to create user account.");
+        }
+
         if (!result.Succeeded)
         {
             throw new ValidationException(string.Join(", ", result.Errors));
         }
 
-        // Add Customer Role
-        var addRoleResult = await _identityService.AddToRoleAsync(userId, Roles.Customer);
-
-        if (!addRoleResult.Succeeded)
+        if (await _identityService.RoleExistsAsync(Roles.Customer))
         {
-            throw new ValidationException(string.Join(", ", addRoleResult.Errors));
+            var addRoleResult = await _identityService.AddToRoleAsync(userId, Roles.Customer);
+
+            if (!addRoleResult.Succeeded)
+            {
+                throw new ValidationException(string.Join(", ", addRoleResult.Errors));
+            }
         }
 
         // Create Customer Profile
-        var customer = new Customer(userId, request.FirstName, request.LastName);
+        var customer = Customer.Create(
+            userId,
+            request.FirstName,
+            request.LastName,
+            EmailVO.Create(request.Email),
+            PhoneNumber.Create(request.PhoneNumber)
+        );
 
         _context.Customers.Add(customer);
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        var cart = Cart.Create(customer.Id);
+
+        _context.Carts.Add(cart);
 
         await _context.SaveChangesAsync(cancellationToken);
 

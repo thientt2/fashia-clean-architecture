@@ -10,16 +10,19 @@ namespace Fashia.Infrastructure.Identity;
 public class IdentityService : IIdentityService
 {
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly RoleManager<IdentityRole> _roleManager;
     private readonly IUserClaimsPrincipalFactory<ApplicationUser> _userClaimsPrincipalFactory;
     private readonly IAuthorizationService _authorizationService;
 
     public IdentityService(
         UserManager<ApplicationUser> userManager,
+        RoleManager<IdentityRole> roleManager,
         IUserClaimsPrincipalFactory<ApplicationUser> userClaimsPrincipalFactory,
         IAuthorizationService authorizationService
     )
     {
         _userManager = userManager;
+        _roleManager = roleManager;
         _userClaimsPrincipalFactory = userClaimsPrincipalFactory;
         _authorizationService = authorizationService;
     }
@@ -66,6 +69,11 @@ public class IdentityService : IIdentityService
         return result.Succeeded;
     }
 
+    public Task<bool> RoleExistsAsync(string role)
+    {
+        return _roleManager.RoleExistsAsync(role);
+    }
+
     public async Task<Result> DeleteUserAsync(string userId)
     {
         var user = await _userManager.FindByIdAsync(userId);
@@ -82,22 +90,9 @@ public class IdentityService : IIdentityService
 
     public async Task<int?> GetUserBranchIdAsync(string userId)
     {
-        var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        var user = await _userManager.FindByIdAsync(userId);
 
         return user?.BranchId;
-    }
-
-    public async Task<bool> CanManageBranchAsync(string userId, int branchId)
-    {
-        if (await IsInRoleAsync(userId, Roles.Administrator))
-            return true;
-
-        if (!await IsInRoleAsync(userId, Roles.BranchManager))
-            return false;
-
-        var userBranchId = await GetUserBranchIdAsync(userId);
-
-        return userBranchId == branchId;
     }
 
     public async Task<Result> AddToRoleAsync(string userId, string role)

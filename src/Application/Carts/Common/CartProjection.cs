@@ -18,13 +18,8 @@ internal static class CartProjection
                     ProductVariantId = item.ProductVariantId,
                     ProductName = item.ProductVariant.Product.Name,
                     Quantity = item.Quantity,
-                    UnitPrice =
-                        item.ProductVariant.OriginalPrice.Amount
-                        * (1 - item.ProductVariant.DiscountPercentage.Value / 100),
-                    LineTotal =
-                        item.Quantity
-                        * item.ProductVariant.OriginalPrice.Amount
-                        * (1 - item.ProductVariant.DiscountPercentage.Value / 100),
+                    UnitPrice = item.UnitPrice,
+                    LineTotal = item.Quantity * item.UnitPrice,
                 })
                 .ToList(),
         });

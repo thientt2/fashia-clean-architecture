@@ -22,7 +22,7 @@ export class AuthClient {
      * @return OK
      */
     registerCustomer(body: RegisterCustomerCommand): Promise<number> {
-        let url_ = this.baseUrl + "/api/Auth/register-customer";
+        let url_ = this.baseUrl + "/api/auth/register-customer";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -80,7 +80,7 @@ export class BranchInventoriesClient {
      * @return No Content
      */
     importBranchInventory(body: ImportBranchInventoryCommand): Promise<void> {
-        let url_ = this.baseUrl + "/api/BranchInventories";
+        let url_ = this.baseUrl + "/api/branch-inventories";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -141,7 +141,7 @@ export class CartClient {
      * @return OK
      */
     getCurrentCart(): Promise<CartDto> {
-        let url_ = this.baseUrl + "/api/Cart";
+        let url_ = this.baseUrl + "/api/cart/current";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -191,7 +191,7 @@ export class CartClient {
      * @return OK
      */
     addCartItem(body: AddCartItemRequest): Promise<CartDto> {
-        let url_ = this.baseUrl + "/api/Cart/items";
+        let url_ = this.baseUrl + "/api/cart/items";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -239,6 +239,162 @@ export class CartClient {
         }
         return Promise.resolve<CartDto>(null as any);
     }
+
+    /**
+     * Clear Cart
+     * @return No Content
+     */
+    clearCart(): Promise<void> {
+        let url_ = this.baseUrl + "/api/cart/items";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processClearCart(_response);
+        });
+    }
+
+    protected processClearCart(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Update Cart item
+     * @return OK
+     */
+    updateCartItemQuantity(cartItemId: number, body: UpdateCartItemQuantityRequest): Promise<CartDto> {
+        let url_ = this.baseUrl + "/api/cart/items/{cartItemId}";
+        if (cartItemId === undefined || cartItemId === null)
+            throw new globalThis.Error("The parameter 'cartItemId' must be defined.");
+        url_ = url_.replace("{cartItemId}", encodeURIComponent("" + cartItemId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateCartItemQuantity(_response);
+        });
+    }
+
+    protected processUpdateCartItemQuantity(response: Response): Promise<CartDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CartDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CartDto>(null as any);
+    }
+
+    /**
+     * Remove Cart item
+     * @return OK
+     */
+    removeCartItem(cartItemId: number): Promise<CartDto> {
+        let url_ = this.baseUrl + "/api/cart/items/{cartItemId}";
+        if (cartItemId === undefined || cartItemId === null)
+            throw new globalThis.Error("The parameter 'cartItemId' must be defined.");
+        url_ = url_.replace("{cartItemId}", encodeURIComponent("" + cartItemId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRemoveCartItem(_response);
+        });
+    }
+
+    protected processRemoveCartItem(response: Response): Promise<CartDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CartDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CartDto>(null as any);
+    }
 }
 
 export class UsersClient {
@@ -252,11 +408,10 @@ export class UsersClient {
     }
 
     /**
-     * Register
      * @return OK
      */
     register(body: RegisterRequest): Promise<void> {
-        let url_ = this.baseUrl + "/api/Users/register";
+        let url_ = this.baseUrl + "/api/users/register";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -297,13 +452,12 @@ export class UsersClient {
     }
 
     /**
-     * Log in
      * @param useCookies (optional) 
      * @param useSessionCookies (optional) 
      * @return OK
      */
     login(useCookies: boolean | undefined, useSessionCookies: boolean | undefined, body: LoginRequest): Promise<AccessTokenResponse> {
-        let url_ = this.baseUrl + "/api/Users/login?";
+        let url_ = this.baseUrl + "/api/users/login?";
         if (useCookies === null)
             throw new globalThis.Error("The parameter 'useCookies' cannot be null.");
         else if (useCookies !== undefined)
@@ -353,11 +507,10 @@ export class UsersClient {
     }
 
     /**
-     * Refresh token
      * @return OK
      */
     refresh(body: RefreshRequest): Promise<AccessTokenResponse> {
-        let url_ = this.baseUrl + "/api/Users/refresh";
+        let url_ = this.baseUrl + "/api/users/refresh";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -399,12 +552,11 @@ export class UsersClient {
     }
 
     /**
-     * Confirm email
      * @param changedEmail (optional) 
      * @return OK
      */
-    mapIdentityApi_api_Users_confirmEmail(userId: string, code: string, changedEmail: string | undefined): Promise<void> {
-        let url_ = this.baseUrl + "/api/Users/confirmEmail?";
+    mapIdentityApi_api_users_confirmEmail(userId: string, code: string, changedEmail: string | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/users/confirmEmail?";
         if (userId === undefined || userId === null)
             throw new globalThis.Error("The parameter 'userId' must be defined and cannot be null.");
         else
@@ -426,11 +578,11 @@ export class UsersClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processMapIdentityApi_api_Users_confirmEmail(_response);
+            return this.processMapIdentityApi_api_users_confirmEmail(_response);
         });
     }
 
-    protected processMapIdentityApi_api_Users_confirmEmail(response: Response): Promise<void> {
+    protected processMapIdentityApi_api_users_confirmEmail(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -450,11 +602,10 @@ export class UsersClient {
     }
 
     /**
-     * Resend confirmation email
      * @return OK
      */
     resendConfirmationEmail(body: ResendConfirmationEmailRequest): Promise<void> {
-        let url_ = this.baseUrl + "/api/Users/resendConfirmationEmail";
+        let url_ = this.baseUrl + "/api/users/resendConfirmationEmail";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -492,11 +643,10 @@ export class UsersClient {
     }
 
     /**
-     * Forgot password
      * @return OK
      */
     forgotPassword(body: ForgotPasswordRequest): Promise<void> {
-        let url_ = this.baseUrl + "/api/Users/forgotPassword";
+        let url_ = this.baseUrl + "/api/users/forgotPassword";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -537,11 +687,10 @@ export class UsersClient {
     }
 
     /**
-     * Reset password
      * @return OK
      */
     resetPassword(body: ResetPasswordRequest): Promise<void> {
-        let url_ = this.baseUrl + "/api/Users/resetPassword";
+        let url_ = this.baseUrl + "/api/users/resetPassword";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -582,11 +731,10 @@ export class UsersClient {
     }
 
     /**
-     * Manage two-factor authentication
      * @return OK
      */
     _2fa(body: TwoFactorRequest): Promise<TwoFactorResponse> {
-        let url_ = this.baseUrl + "/api/Users/manage/2fa";
+        let url_ = this.baseUrl + "/api/users/manage/2fa";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -643,11 +791,10 @@ export class UsersClient {
     }
 
     /**
-     * Get account info
      * @return OK
      */
     infoGET(): Promise<InfoResponse> {
-        let url_ = this.baseUrl + "/api/Users/manage/info";
+        let url_ = this.baseUrl + "/api/users/manage/info";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -700,11 +847,10 @@ export class UsersClient {
     }
 
     /**
-     * Update account info
      * @return OK
      */
     infoPOST(body: InfoRequest): Promise<InfoResponse> {
-        let url_ = this.baseUrl + "/api/Users/manage/info";
+        let url_ = this.baseUrl + "/api/users/manage/info";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -765,7 +911,7 @@ export class UsersClient {
      * @return OK
      */
     logout(body: any): Promise<void> {
-        let url_ = this.baseUrl + "/api/Users/logout";
+        let url_ = this.baseUrl + "/api/users/logout";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -826,7 +972,7 @@ export class VouchersClient {
      * @return OK
      */
     getVouchers(): Promise<VoucherDto[]> {
-        let url_ = this.baseUrl + "/api/Vouchers";
+        let url_ = this.baseUrl + "/api/vouchers";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -875,7 +1021,7 @@ export class VouchersClient {
      * @return Created
      */
     createVoucher(body: CreateVoucherRequest): Promise<number> {
-        let url_ = this.baseUrl + "/api/Vouchers";
+        let url_ = this.baseUrl + "/api/vouchers";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -930,7 +1076,7 @@ export class VouchersClient {
      * @return OK
      */
     getVoucherById(id: number): Promise<VoucherDto> {
-        let url_ = this.baseUrl + "/api/Vouchers/{id}";
+        let url_ = this.baseUrl + "/api/vouchers/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
@@ -979,7 +1125,7 @@ export class VouchersClient {
      * @return No Content
      */
     updateVoucher(id: number, body: UpdateVoucherRequest): Promise<void> {
-        let url_ = this.baseUrl + "/api/Vouchers/{id}";
+        let url_ = this.baseUrl + "/api/vouchers/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
@@ -1034,7 +1180,7 @@ export class VouchersClient {
      * @return OK
      */
     getOrderVoucherUsages(orderId: number | undefined, voucherId: number | undefined): Promise<OrderVoucherUsageDto[]> {
-        let url_ = this.baseUrl + "/api/Vouchers/usages?";
+        let url_ = this.baseUrl + "/api/vouchers/usages?";
         if (orderId === null)
             throw new globalThis.Error("The parameter 'orderId' cannot be null.");
         else if (orderId !== undefined)
@@ -1091,7 +1237,7 @@ export class VouchersClient {
      * @return OK
      */
     getVoucherUsages(id: number): Promise<OrderVoucherUsageDto[]> {
-        let url_ = this.baseUrl + "/api/Vouchers/{id}/usages";
+        let url_ = this.baseUrl + "/api/vouchers/{id}/usages";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
@@ -1143,7 +1289,7 @@ export class VouchersClient {
      * @return No Content
      */
     deactivateVoucher(id: number): Promise<void> {
-        let url_ = this.baseUrl + "/api/Vouchers/deactivate/{id}";
+        let url_ = this.baseUrl + "/api/vouchers/deactivate/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
@@ -1192,7 +1338,7 @@ export class VouchersClient {
      * @return No Content
      */
     suspendVoucher(id: number): Promise<void> {
-        let url_ = this.baseUrl + "/api/Vouchers/suspend/{id}";
+        let url_ = this.baseUrl + "/api/vouchers/suspend/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
@@ -1241,7 +1387,7 @@ export class VouchersClient {
      * @return No Content
      */
     reactivateVoucher(id: number): Promise<void> {
-        let url_ = this.baseUrl + "/api/Vouchers/reactivate/{id}";
+        let url_ = this.baseUrl + "/api/vouchers/reactivate/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
@@ -1302,7 +1448,7 @@ export class UploadsClient {
      * @return OK
      */
     uploadImage(folder: string | undefined): Promise<UploadImageResult> {
-        let url_ = this.baseUrl + "/api/Uploads/images";
+        let url_ = this.baseUrl + "/api/uploads/images";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = new FormData();
@@ -1370,7 +1516,7 @@ export class ProductsClient {
      * @return OK
      */
     getProducts(): Promise<ProductDto[]> {
-        let url_ = this.baseUrl + "/api/Products";
+        let url_ = this.baseUrl + "/api/products";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -1419,7 +1565,7 @@ export class ProductsClient {
      * @return Created
      */
     createProduct(body: CreateProductRequest): Promise<number> {
-        let url_ = this.baseUrl + "/api/Products";
+        let url_ = this.baseUrl + "/api/products";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -1474,7 +1620,7 @@ export class ProductsClient {
      * @return OK
      */
     getProductById(id: number): Promise<ProductDto> {
-        let url_ = this.baseUrl + "/api/Products/{id}";
+        let url_ = this.baseUrl + "/api/products/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
@@ -1523,7 +1669,7 @@ export class ProductsClient {
      * @return No Content
      */
     updateProduct(id: number, body: UpdateProductRequest): Promise<void> {
-        let url_ = this.baseUrl + "/api/Products/{id}";
+        let url_ = this.baseUrl + "/api/products/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
@@ -1580,7 +1726,7 @@ export class ProductsClient {
      * @return No Content
      */
     deleteProduct(id: number): Promise<void> {
-        let url_ = this.baseUrl + "/api/Products/{id}";
+        let url_ = this.baseUrl + "/api/products/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
@@ -1636,60 +1782,11 @@ export class OrdersClient {
     }
 
     /**
-     * Get all Orders
-     * @return OK
-     */
-    getOrders(): Promise<OrderDto[]> {
-        let url_ = this.baseUrl + "/api/Orders";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetOrders(_response);
-        });
-    }
-
-    protected processGetOrders(response: Response): Promise<OrderDto[]> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(OrderDto.fromJS(item));
-            }
-            else {
-                result200 = null as any;
-            }
-            return result200;
-            });
-        } else if (status === 400) {
-            return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<OrderDto[]>(null as any);
-    }
-
-    /**
-     * Create Order
+     * Checkout selected Cart Items
      * @return Created
      */
-    createOrder(body: CreateOrderRequest): Promise<number> {
-        let url_ = this.baseUrl + "/api/Orders";
+    checkoutOrder(body: CheckoutOrderRequest): Promise<number> {
+        let url_ = this.baseUrl + "/api/orders/checkout";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -1704,11 +1801,11 @@ export class OrdersClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCreateOrder(_response);
+            return this.processCheckoutOrder(_response);
         });
     }
 
-    protected processCreateOrder(response: Response): Promise<number> {
+    protected processCheckoutOrder(response: Response): Promise<number> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 201) {
@@ -1730,55 +1827,6 @@ export class OrdersClient {
         }
         return Promise.resolve<number>(null as any);
     }
-
-    /**
-     * Get Order by Id
-     * @return OK
-     */
-    getOrderById(id: number): Promise<OrderDto> {
-        let url_ = this.baseUrl + "/api/Orders/{id}";
-        if (id === undefined || id === null)
-            throw new globalThis.Error("The parameter 'id' must be defined.");
-        url_ = url_.replace("{id}", encodeURIComponent("" + id));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetOrderById(_response);
-        });
-    }
-
-    protected processGetOrderById(response: Response): Promise<OrderDto> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = OrderDto.fromJS(resultData200);
-            return result200;
-            });
-        } else if (status === 400) {
-            return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
-            });
-        } else if (status === 404) {
-            return response.text().then((_responseText) => {
-            return throwException("Not Found", status, _responseText, _headers);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<OrderDto>(null as any);
-    }
 }
 
 export class CategoriesClient {
@@ -1796,7 +1844,7 @@ export class CategoriesClient {
      * @return OK
      */
     getCategories(): Promise<CategoryDto[]> {
-        let url_ = this.baseUrl + "/api/Categories";
+        let url_ = this.baseUrl + "/api/categories";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -1845,7 +1893,7 @@ export class CategoriesClient {
      * @return Created
      */
     createCategory(body: CreateCategoryRequest): Promise<number> {
-        let url_ = this.baseUrl + "/api/Categories";
+        let url_ = this.baseUrl + "/api/categories";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -1900,7 +1948,7 @@ export class CategoriesClient {
      * @return OK
      */
     getCategoryById(id: number): Promise<CategoryDto> {
-        let url_ = this.baseUrl + "/api/Categories/{id}";
+        let url_ = this.baseUrl + "/api/categories/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
@@ -1949,7 +1997,7 @@ export class CategoriesClient {
      * @return No Content
      */
     updateCategory(id: number, body: UpdateCategoryCommand): Promise<void> {
-        let url_ = this.baseUrl + "/api/Categories/{id}";
+        let url_ = this.baseUrl + "/api/categories/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
@@ -2002,7 +2050,7 @@ export class CategoriesClient {
      * @return No Content
      */
     deleteCategory(id: number): Promise<void> {
-        let url_ = this.baseUrl + "/api/Categories/{id}";
+        let url_ = this.baseUrl + "/api/categories/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
@@ -2051,7 +2099,7 @@ export class CategoriesClient {
      * @return No Content
      */
     activate(id: number): Promise<void> {
-        let url_ = this.baseUrl + "/api/Categories/activate/{id}";
+        let url_ = this.baseUrl + "/api/categories/activate/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
@@ -2100,7 +2148,7 @@ export class CategoriesClient {
      * @return No Content
      */
     deactivate(id: number): Promise<void> {
-        let url_ = this.baseUrl + "/api/Categories/deactivate/{id}";
+        let url_ = this.baseUrl + "/api/categories/deactivate/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
@@ -2261,6 +2309,8 @@ export class CartDto implements ICartDto {
     id?: number | undefined;
     items?: CartItemDto[];
     subTotal?: number;
+    totalQuantity?: number;
+    totalPrice?: number;
 
     [key: string]: any;
 
@@ -2286,6 +2336,8 @@ export class CartDto implements ICartDto {
                     this.items!.push(CartItemDto.fromJS(item));
             }
             this.subTotal = _data["subTotal"];
+            this.totalQuantity = _data["totalQuantity"];
+            this.totalPrice = _data["totalPrice"];
         }
     }
 
@@ -2309,6 +2361,8 @@ export class CartDto implements ICartDto {
                 data["items"].push(item ? item.toJSON() : undefined as any);
         }
         data["subTotal"] = this.subTotal;
+        data["totalQuantity"] = this.totalQuantity;
+        data["totalPrice"] = this.totalPrice;
         return data;
     }
 }
@@ -2317,6 +2371,8 @@ export interface ICartDto {
     id?: number | undefined;
     items?: CartItemDto[];
     subTotal?: number;
+    totalQuantity?: number;
+    totalPrice?: number;
 
     [key: string]: any;
 }
@@ -2461,6 +2517,74 @@ export interface ICategoryDto {
     [key: string]: any;
 }
 
+export class CheckoutOrderRequest implements ICheckoutOrderRequest {
+    cartItemIds?: number[];
+    shippingAddressId?: number;
+    paymentMethod?: number;
+    note?: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: ICheckoutOrderRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (Array.isArray(_data["cartItemIds"])) {
+                this.cartItemIds = [] as any;
+                for (let item of _data["cartItemIds"])
+                    this.cartItemIds!.push(item);
+            }
+            this.shippingAddressId = _data["shippingAddressId"];
+            this.paymentMethod = _data["paymentMethod"];
+            this.note = _data["note"];
+        }
+    }
+
+    static fromJS(data: any): CheckoutOrderRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CheckoutOrderRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        if (Array.isArray(this.cartItemIds)) {
+            data["cartItemIds"] = [];
+            for (let item of this.cartItemIds)
+                data["cartItemIds"].push(item);
+        }
+        data["shippingAddressId"] = this.shippingAddressId;
+        data["paymentMethod"] = this.paymentMethod;
+        data["note"] = this.note;
+        return data;
+    }
+}
+
+export interface ICheckoutOrderRequest {
+    cartItemIds?: number[];
+    shippingAddressId?: number;
+    paymentMethod?: number;
+    note?: string | undefined;
+
+    [key: string]: any;
+}
+
 export class CreateCategoryRequest implements ICreateCategoryRequest {
     name?: string;
     description?: string | undefined;
@@ -2521,133 +2645,13 @@ export interface ICreateCategoryRequest {
     [key: string]: any;
 }
 
-export class CreateOrderItemRequest implements ICreateOrderItemRequest {
-    productVariantId?: number;
-    quantity?: number;
-
-    [key: string]: any;
-
-    constructor(data?: ICreateOrderItemRequest) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.productVariantId = _data["productVariantId"];
-            this.quantity = _data["quantity"];
-        }
-    }
-
-    static fromJS(data: any): CreateOrderItemRequest {
-        data = typeof data === 'object' ? data : {};
-        let result = new CreateOrderItemRequest();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["productVariantId"] = this.productVariantId;
-        data["quantity"] = this.quantity;
-        return data;
-    }
-}
-
-export interface ICreateOrderItemRequest {
-    productVariantId?: number;
-    quantity?: number;
-
-    [key: string]: any;
-}
-
-export class CreateOrderRequest implements ICreateOrderRequest {
-    customerId?: number;
-    branchId?: number;
-    voucherCode?: string | undefined;
-    items?: CreateOrderItemRequest[];
-
-    [key: string]: any;
-
-    constructor(data?: ICreateOrderRequest) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.customerId = _data["customerId"];
-            this.branchId = _data["branchId"];
-            this.voucherCode = _data["voucherCode"];
-            if (Array.isArray(_data["items"])) {
-                this.items = [] as any;
-                for (let item of _data["items"])
-                    this.items!.push(CreateOrderItemRequest.fromJS(item));
-            }
-        }
-    }
-
-    static fromJS(data: any): CreateOrderRequest {
-        data = typeof data === 'object' ? data : {};
-        let result = new CreateOrderRequest();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["customerId"] = this.customerId;
-        data["branchId"] = this.branchId;
-        data["voucherCode"] = this.voucherCode;
-        if (Array.isArray(this.items)) {
-            data["items"] = [];
-            for (let item of this.items)
-                data["items"].push(item ? item.toJSON() : undefined as any);
-        }
-        return data;
-    }
-}
-
-export interface ICreateOrderRequest {
-    customerId?: number;
-    branchId?: number;
-    voucherCode?: string | undefined;
-    items?: CreateOrderItemRequest[];
-
-    [key: string]: any;
-}
-
 export class CreateProductRequest implements ICreateProductRequest {
     name?: string;
     description?: string;
-    uploadedImageIds?: number[];
+    uploadedImageIds?: number[] | undefined;
     categoryId?: number;
     brandId?: number;
-    variants?: CreateProductVariantRequest[];
+    variants?: CreateProductVariantRequest[] | undefined;
 
     [key: string]: any;
 
@@ -2717,18 +2721,18 @@ export class CreateProductRequest implements ICreateProductRequest {
 export interface ICreateProductRequest {
     name?: string;
     description?: string;
-    uploadedImageIds?: number[];
+    uploadedImageIds?: number[] | undefined;
     categoryId?: number;
     brandId?: number;
-    variants?: CreateProductVariantRequest[];
+    variants?: CreateProductVariantRequest[] | undefined;
 
     [key: string]: any;
 }
 
 export class CreateProductVariantRequest implements ICreateProductVariantRequest {
     originalPrice?: number;
-    uploadedImageIds?: number[];
-    attributeValueIds?: number[];
+    uploadedImageIds?: number[] | undefined;
+    attributeValueIds?: number[] | undefined;
 
     [key: string]: any;
 
@@ -2791,8 +2795,8 @@ export class CreateProductVariantRequest implements ICreateProductVariantRequest
 
 export interface ICreateProductVariantRequest {
     originalPrice?: number;
-    uploadedImageIds?: number[];
-    attributeValueIds?: number[];
+    uploadedImageIds?: number[] | undefined;
+    attributeValueIds?: number[] | undefined;
 
     [key: string]: any;
 }
@@ -3353,262 +3357,6 @@ export interface ILookupDto {
     [key: string]: any;
 }
 
-export class OrderDto implements IOrderDto {
-    id?: number;
-    customerId?: number | undefined;
-    customerName?: string;
-    customerEmail?: string | undefined;
-    customerPhone?: string;
-    shippingAddress?: string;
-    branchId?: number;
-    branchName?: string;
-    voucherId?: number | undefined;
-    voucherCode?: string | undefined;
-    subTotalAmount?: number;
-    discountAmount?: number;
-    totalAmount?: number;
-    status?: string;
-    items?: OrderItemDto[];
-    vouchers?: OrderVoucherDto[];
-
-    [key: string]: any;
-
-    constructor(data?: IOrderDto) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.id = _data["id"];
-            this.customerId = _data["customerId"];
-            this.customerName = _data["customerName"];
-            this.customerEmail = _data["customerEmail"];
-            this.customerPhone = _data["customerPhone"];
-            this.shippingAddress = _data["shippingAddress"];
-            this.branchId = _data["branchId"];
-            this.branchName = _data["branchName"];
-            this.voucherId = _data["voucherId"];
-            this.voucherCode = _data["voucherCode"];
-            this.subTotalAmount = _data["subTotalAmount"];
-            this.discountAmount = _data["discountAmount"];
-            this.totalAmount = _data["totalAmount"];
-            this.status = _data["status"];
-            if (Array.isArray(_data["items"])) {
-                this.items = [] as any;
-                for (let item of _data["items"])
-                    this.items!.push(OrderItemDto.fromJS(item));
-            }
-            if (Array.isArray(_data["vouchers"])) {
-                this.vouchers = [] as any;
-                for (let item of _data["vouchers"])
-                    this.vouchers!.push(OrderVoucherDto.fromJS(item));
-            }
-        }
-    }
-
-    static fromJS(data: any): OrderDto {
-        data = typeof data === 'object' ? data : {};
-        let result = new OrderDto();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["id"] = this.id;
-        data["customerId"] = this.customerId;
-        data["customerName"] = this.customerName;
-        data["customerEmail"] = this.customerEmail;
-        data["customerPhone"] = this.customerPhone;
-        data["shippingAddress"] = this.shippingAddress;
-        data["branchId"] = this.branchId;
-        data["branchName"] = this.branchName;
-        data["voucherId"] = this.voucherId;
-        data["voucherCode"] = this.voucherCode;
-        data["subTotalAmount"] = this.subTotalAmount;
-        data["discountAmount"] = this.discountAmount;
-        data["totalAmount"] = this.totalAmount;
-        data["status"] = this.status;
-        if (Array.isArray(this.items)) {
-            data["items"] = [];
-            for (let item of this.items)
-                data["items"].push(item ? item.toJSON() : undefined as any);
-        }
-        if (Array.isArray(this.vouchers)) {
-            data["vouchers"] = [];
-            for (let item of this.vouchers)
-                data["vouchers"].push(item ? item.toJSON() : undefined as any);
-        }
-        return data;
-    }
-}
-
-export interface IOrderDto {
-    id?: number;
-    customerId?: number | undefined;
-    customerName?: string;
-    customerEmail?: string | undefined;
-    customerPhone?: string;
-    shippingAddress?: string;
-    branchId?: number;
-    branchName?: string;
-    voucherId?: number | undefined;
-    voucherCode?: string | undefined;
-    subTotalAmount?: number;
-    discountAmount?: number;
-    totalAmount?: number;
-    status?: string;
-    items?: OrderItemDto[];
-    vouchers?: OrderVoucherDto[];
-
-    [key: string]: any;
-}
-
-export class OrderItemDto implements IOrderItemDto {
-    id?: number;
-    productVariantId?: number;
-    productName?: string;
-    quantity?: number;
-    unitPrice?: number;
-    lineTotal?: number;
-
-    [key: string]: any;
-
-    constructor(data?: IOrderItemDto) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.id = _data["id"];
-            this.productVariantId = _data["productVariantId"];
-            this.productName = _data["productName"];
-            this.quantity = _data["quantity"];
-            this.unitPrice = _data["unitPrice"];
-            this.lineTotal = _data["lineTotal"];
-        }
-    }
-
-    static fromJS(data: any): OrderItemDto {
-        data = typeof data === 'object' ? data : {};
-        let result = new OrderItemDto();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["id"] = this.id;
-        data["productVariantId"] = this.productVariantId;
-        data["productName"] = this.productName;
-        data["quantity"] = this.quantity;
-        data["unitPrice"] = this.unitPrice;
-        data["lineTotal"] = this.lineTotal;
-        return data;
-    }
-}
-
-export interface IOrderItemDto {
-    id?: number;
-    productVariantId?: number;
-    productName?: string;
-    quantity?: number;
-    unitPrice?: number;
-    lineTotal?: number;
-
-    [key: string]: any;
-}
-
-export class OrderVoucherDto implements IOrderVoucherDto {
-    id?: number;
-    voucherId?: number;
-    voucherCode?: string;
-    discountAmount?: number;
-    appliedAt?: Date;
-
-    [key: string]: any;
-
-    constructor(data?: IOrderVoucherDto) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.id = _data["id"];
-            this.voucherId = _data["voucherId"];
-            this.voucherCode = _data["voucherCode"];
-            this.discountAmount = _data["discountAmount"];
-            this.appliedAt = _data["appliedAt"] ? new Date(_data["appliedAt"].toString()) : undefined as any;
-        }
-    }
-
-    static fromJS(data: any): OrderVoucherDto {
-        data = typeof data === 'object' ? data : {};
-        let result = new OrderVoucherDto();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["id"] = this.id;
-        data["voucherId"] = this.voucherId;
-        data["voucherCode"] = this.voucherCode;
-        data["discountAmount"] = this.discountAmount;
-        data["appliedAt"] = this.appliedAt ? this.appliedAt.toISOString() : undefined as any;
-        return data;
-    }
-}
-
-export interface IOrderVoucherDto {
-    id?: number;
-    voucherId?: number;
-    voucherCode?: string;
-    discountAmount?: number;
-    appliedAt?: Date;
-
-    [key: string]: any;
-}
-
 export class OrderVoucherUsageDto implements IOrderVoucherUsageDto {
     id?: number;
     orderId?: number;
@@ -3843,6 +3591,7 @@ export interface IProductVariantAttributeValueDto {
 
 export class ProductVariantDto implements IProductVariantDto {
     id?: number;
+    displayName?: string;
     originalPrice?: number;
     discountPercentage?: number;
     stockQuantity?: number;
@@ -3868,6 +3617,7 @@ export class ProductVariantDto implements IProductVariantDto {
                     this[property] = _data[property];
             }
             this.id = _data["id"];
+            this.displayName = _data["displayName"];
             this.originalPrice = _data["originalPrice"];
             this.discountPercentage = _data["discountPercentage"];
             this.stockQuantity = _data["stockQuantity"];
@@ -3899,6 +3649,7 @@ export class ProductVariantDto implements IProductVariantDto {
                 data[property] = this[property];
         }
         data["id"] = this.id;
+        data["displayName"] = this.displayName;
         data["originalPrice"] = this.originalPrice;
         data["discountPercentage"] = this.discountPercentage;
         data["stockQuantity"] = this.stockQuantity;
@@ -3919,6 +3670,7 @@ export class ProductVariantDto implements IProductVariantDto {
 
 export interface IProductVariantDto {
     id?: number;
+    displayName?: string;
     originalPrice?: number;
     discountPercentage?: number;
     stockQuantity?: number;
@@ -3982,6 +3734,7 @@ export class RegisterCustomerCommand implements IRegisterCustomerCommand {
     password?: string;
     firstName?: string;
     lastName?: string;
+    phoneNumber?: string;
 
     [key: string]: any;
 
@@ -4004,6 +3757,7 @@ export class RegisterCustomerCommand implements IRegisterCustomerCommand {
             this.password = _data["password"];
             this.firstName = _data["firstName"];
             this.lastName = _data["lastName"];
+            this.phoneNumber = _data["phoneNumber"];
         }
     }
 
@@ -4024,6 +3778,7 @@ export class RegisterCustomerCommand implements IRegisterCustomerCommand {
         data["password"] = this.password;
         data["firstName"] = this.firstName;
         data["lastName"] = this.lastName;
+        data["phoneNumber"] = this.phoneNumber;
         return data;
     }
 }
@@ -4033,6 +3788,7 @@ export interface IRegisterCustomerCommand {
     password?: string;
     firstName?: string;
     lastName?: string;
+    phoneNumber?: string;
 
     [key: string]: any;
 }
@@ -4325,6 +4081,54 @@ export interface ITwoFactorResponse {
     recoveryCodes?: string[] | undefined;
     isTwoFactorEnabled: boolean;
     isMachineRemembered: boolean;
+
+    [key: string]: any;
+}
+
+export class UpdateCartItemQuantityRequest implements IUpdateCartItemQuantityRequest {
+    quantity?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IUpdateCartItemQuantityRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.quantity = _data["quantity"];
+        }
+    }
+
+    static fromJS(data: any): UpdateCartItemQuantityRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateCartItemQuantityRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["quantity"] = this.quantity;
+        return data;
+    }
+}
+
+export interface IUpdateCartItemQuantityRequest {
+    quantity?: number;
 
     [key: string]: any;
 }

@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace Fashia.Web.Infrastructure;
 
@@ -11,19 +12,35 @@ public static class WebApplicationExtensions
     /// </summary>
     public static WebApplication MapEndpoints(this WebApplication app, Assembly assembly)
     {
-        var endpointGroupTypes = assembly.GetExportedTypes()
-            .Where(t => t is { IsAbstract: false, IsInterface: false }
-                     && t.IsAssignableTo(typeof(IEndpointGroup)));
+        var endpointGroupTypes = assembly
+            .GetExportedTypes()
+            .Where(t =>
+                t is { IsAbstract: false, IsInterface: false }
+                && t.IsAssignableTo(typeof(IEndpointGroup))
+            );
 
         foreach (var type in endpointGroupTypes)
         {
             var groupName = type.Name;
-            var routePrefix = type.GetProperty(nameof(IEndpointGroup.RoutePrefix))
-                ?.GetValue(null) as string ?? $"/api/{groupName}";
+            var routePrefix =
+                type.GetProperty(nameof(IEndpointGroup.RoutePrefix))?.GetValue(null) as string
+                ?? $"/api/{ToKebabCase(groupName)}";
             var group = app.MapGroup(routePrefix).WithTags(groupName);
             type.GetMethod(nameof(IEndpointGroup.Map))!.Invoke(null, [group]);
         }
 
         return app;
+    }
+
+    private static string ToKebabCase(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return value;
+
+        var result = Regex.Replace(value, "([a-z0-9])([A-Z])", "$1-$2");
+
+        result = Regex.Replace(result, "([A-Z]+)([A-Z][a-z])", "$1-$2");
+
+        return result.ToLowerInvariant();
     }
 }

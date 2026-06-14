@@ -10,15 +10,25 @@ public class CartItem : BaseAuditableEntity
 
     public int Quantity { get; private set; }
 
+    public decimal UnitPrice { get; private set; }
+
+    public decimal TotalPrice => UnitPrice * Quantity;
+
     private CartItem()
     {
         // EF Core
     }
 
-    public CartItem(int productVariantId, int quantity)
+    private CartItem(int productVariantId, int quantity, decimal unitPrice)
     {
         SetProductVariantId(productVariantId);
         SetQuantity(quantity);
+        SetUnitPrice(unitPrice);
+    }
+
+    public static CartItem Create(int productVariantId, int quantity, decimal unitPrice)
+    {
+        return new CartItem(productVariantId, quantity, unitPrice);
     }
 
     public void IncreaseQuantity(int quantity)
@@ -34,10 +44,18 @@ public class CartItem : BaseAuditableEntity
         SetQuantity(quantity);
     }
 
+    public void RefreshUnitPrice(decimal currentUnitPrice)
+    {
+        SetUnitPrice(currentUnitPrice);
+    }
+
     private void SetProductVariantId(int productVariantId)
     {
         if (productVariantId <= 0)
-            throw new ArgumentException("Product variant id is required.", nameof(productVariantId));
+            throw new ArgumentException(
+                "Product variant id is required.",
+                nameof(productVariantId)
+            );
 
         ProductVariantId = productVariantId;
     }
@@ -48,5 +66,13 @@ public class CartItem : BaseAuditableEntity
             throw new ArgumentException("Quantity must be greater than zero.", nameof(quantity));
 
         Quantity = quantity;
+    }
+
+    private void SetUnitPrice(decimal unitPrice)
+    {
+        if (unitPrice < 0)
+            throw new ArgumentException("Unit price cannot be negative.", nameof(unitPrice));
+
+        UnitPrice = unitPrice;
     }
 }

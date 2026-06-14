@@ -1,6 +1,3 @@
-using System.Text.Json;
-using Fashia.Application.Common.Interfaces;
-using Fashia.Application.Common.Models;
 using Fashia.Application.Products.Commands.CreateProduct;
 using Fashia.Application.Products.Commands.DeleteProduct;
 using Fashia.Application.Products.Commands.UpdateProduct;
@@ -10,7 +7,6 @@ using Fashia.Application.Products.Queries.GetProductsQuery;
 using Fashia.Domain.Constants;
 using Fashia.Web.Endpoints.Products.Requests;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Fashia.Web.Endpoints.Products;
 
@@ -70,17 +66,22 @@ public class Products : IEndpointGroup
         {
             Name = request.Name,
             Description = request.Description,
-            UploadedImageIds = request.UploadedImageIds,
+            UploadedImageIds = request.UploadedImageIds ?? [],
             CategoryId = request.CategoryId,
             BrandId = request.BrandId,
             Variants = request
-                .Variants.Select(x => new CreateProductVariantDto
-                {
-                    OriginalPrice = x.OriginalPrice,
-                    UploadedImageIds = x.UploadedImageIds,
-                    AttributeValueIds = x.AttributeValueIds,
-                })
-                .ToList(),
+                .Variants?
+                .Select(x =>
+                    x is null
+                        ? new CreateProductVariantDto()
+                        : new CreateProductVariantDto
+                        {
+                            OriginalPrice = x.OriginalPrice,
+                            UploadedImageIds = x.UploadedImageIds ?? [],
+                            AttributeValueIds = x.AttributeValueIds ?? [],
+                        }
+                )
+                .ToList() ?? [],
         };
 
         var id = await sender.Send(command, cancellationToken);

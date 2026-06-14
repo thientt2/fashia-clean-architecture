@@ -18,7 +18,7 @@ public sealed class UpdateProductCommandValidator : AbstractValidator<UpdateProd
 
         RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
 
-        RuleFor(x => x.Description).NotEmpty().MaximumLength(2000);
+        RuleFor(x => x.Description).NotEmpty().MaximumLength(1000);
 
         RuleFor(x => x.CategoryId)
             .GreaterThan(0)

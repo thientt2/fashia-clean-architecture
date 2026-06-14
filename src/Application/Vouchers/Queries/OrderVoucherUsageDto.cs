@@ -8,8 +8,8 @@ public sealed record OrderVoucherUsageDto
     public string CustomerName { get; init; } = string.Empty;
     public int VoucherId { get; init; }
     public string VoucherCode { get; init; } = string.Empty;
-    public decimal OrderSubTotalAmount { get; init; }
-    public decimal DiscountAmount { get; init; }
-    public decimal OrderTotalAmount { get; init; }
+    public long OrderSubTotalAmount { get; init; }
+    public long DiscountAmount { get; init; }
+    public long OrderTotalAmount { get; init; }
     public DateTime AppliedAt { get; init; }
 }

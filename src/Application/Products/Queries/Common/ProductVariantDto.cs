@@ -6,7 +6,9 @@ public sealed class ProductVariantDto
 {
     public int Id { get; init; }
 
-    public decimal OriginalPrice { get; init; }
+    public string DisplayName { get; init; } = string.Empty;
+
+    public long OriginalPrice { get; init; }
 
     public decimal DiscountPercentage { get; init; }
 
@@ -34,6 +36,8 @@ public sealed class ProductVariantDto
                     dest => dest.SellingPrice,
                     opt => opt.MapFrom(src => src.SellingPrice.Amount)
                 )
+                .ForMember(dest => dest.DisplayName, opt => opt.Ignore())
+                .ForMember(dest => dest.StockQuantity, opt => opt.Ignore())
                 .ForMember(
                     dest => dest.ImageUrls,
                     opt =>

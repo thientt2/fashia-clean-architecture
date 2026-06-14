@@ -39,6 +39,11 @@ public sealed class EmailVO : ValueObject
         return new EmailVO(email);
     }
 
+    public bool IsEmpty()
+    {
+        return string.IsNullOrWhiteSpace(Value);
+    }
+
     public static implicit operator string(EmailVO email)
     {
         return email.Value;

@@ -112,6 +112,21 @@ public static class TestApp
         await context.SaveChangesAsync();
     }
 
+    public static async Task<T> ExecuteDbContextAsync<T>(
+        Func<ApplicationDbContext, Task<T>> action)
+    {
+        using var scope = FunctionalTestSetup.ScopeFactory.CreateScope();
+
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        return await action(context);
+    }
+
+    public static HttpClient CreateClient()
+    {
+        return FunctionalTestSetup.Factory.CreateClient();
+    }
+
     public static async Task<int> CountAsync<TEntity>() where TEntity : class
     {
         using var scope = FunctionalTestSetup.ScopeFactory.CreateScope();

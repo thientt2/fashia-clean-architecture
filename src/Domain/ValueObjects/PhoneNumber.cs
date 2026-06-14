@@ -27,6 +27,11 @@ public class PhoneNumber : ValueObject
         return new PhoneNumber(phone);
     }
 
+    public bool IsEmpty()
+    {
+        return string.IsNullOrWhiteSpace(Value);
+    }
+
     public override string ToString()
     {
         return Value;

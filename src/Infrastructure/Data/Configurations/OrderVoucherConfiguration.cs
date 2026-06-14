@@ -8,15 +8,36 @@ public class OrderVoucherConfiguration : IEntityTypeConfiguration<OrderVoucher>
 {
     public void Configure(EntityTypeBuilder<OrderVoucher> builder)
     {
+        builder.Property(x => x.VoucherId).IsRequired();
+        builder.Property(x => x.OrderId).IsRequired();
         builder.Property(x => x.VoucherCode).HasMaxLength(50).IsRequired();
-        builder.Property(x => x.DiscountAmount).HasPrecision(18, 2).IsRequired();
+
+        builder.OwnsOne(
+            x => x.DiscountAmount,
+            discountAmount =>
+            {
+                discountAmount
+                    .Property(d => d.Amount)
+                    .HasColumnName("DiscountAmount")
+                    .HasPrecision(18, 2)
+                    .IsRequired();
+                discountAmount
+                    .Property(d => d.Currency)
+                    .HasColumnName("DiscountCurrency")
+                    .HasMaxLength(3)
+                    .IsRequired();
+            }
+        );
         builder.Property(x => x.AppliedAt).IsRequired();
 
-        builder.HasIndex(x => x.OrderId).IsUnique();
-        builder.HasIndex(x => new { x.VoucherId, x.OrderId });
+        builder
+            .HasOne<Order>()
+            .WithOne(x => x.OrderVoucher)
+            .HasForeignKey<OrderVoucher>(x => x.OrderId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder
-            .HasOne(x => x.Voucher)
+            .HasOne<Voucher>()
             .WithMany()
             .HasForeignKey(x => x.VoucherId)
             .OnDelete(DeleteBehavior.Restrict);

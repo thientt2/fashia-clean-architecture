@@ -1,9 +1,12 @@
+using Fashia.Domain.Builders;
+using Fashia.Domain.Enums;
+using Fashia.Domain.ValueObjects;
+
 namespace Fashia.Domain.Entities;
 
 public class Order : BaseAuditableEntity
 {
     private readonly List<OrderItem> _items = new();
-    private readonly List<OrderVoucher> _vouchers = new();
 
     public int? CustomerId { get; private set; }
     public Customer? Customer { get; private set; }
@@ -12,48 +15,92 @@ public class Order : BaseAuditableEntity
     public Branch Branch { get; private set; } = null!;
 
     public string CustomerName { get; private set; } = string.Empty;
-    public string? CustomerEmail { get; private set; }
-    public string CustomerPhone { get; private set; } = string.Empty;
-    public string ShippingAddress { get; private set; } = string.Empty;
 
-    public decimal SubTotalAmount { get; private set; }
-    public decimal DiscountAmount { get; private set; }
-    public decimal TotalAmount { get; private set; }
+    public EmailVO CustomerEmail { get; private set; } = null!;
+
+    public PhoneNumber CustomerPhone { get; private set; } = null!;
+
+    public Address ShippingAddress { get; private set; } = default!;
+
+    public Money SubTotalAmount { get; private set; } = Money.Zero();
+
+    public Money DiscountAmount { get; private set; } = Money.Zero();
+
+    public Money ShippingFee { get; private set; } = Money.Zero();
+
+    public Money TotalAmount { get; private set; } = Money.Zero();
+
+    public PaymentMethod PaymentMethod { get; private set; }
+
+    public string? Note { get; private set; }
+
     public OrderStatus Status { get; private set; }
 
+    public OrderVoucher? OrderVoucher { get; private set; }
+
     public IReadOnlyCollection<OrderItem> Items => _items.AsReadOnly();
-    public IReadOnlyCollection<OrderVoucher> Vouchers => _vouchers.AsReadOnly();
 
     private Order()
     {
         // EF Core
     }
 
-    public Order(int customerId, int branchId)
-        : this(customerId, branchId, "Customer", null, "N/A", "N/A")
-    {
-    }
-
-    public Order(
+    private Order(
         int? customerId,
         int branchId,
         string customerName,
-        string? customerEmail,
-        string customerPhone,
-        string shippingAddress
+        EmailVO customerEmail,
+        PhoneNumber customerPhone,
+        Address shippingAddress,
+        PaymentMethod paymentMethod = PaymentMethod.CashOnDelivery,
+        string? note = null
     )
     {
         SetCustomerId(customerId);
         SetBranchId(branchId);
-        SetCustomerSnapshot(customerName, customerEmail, customerPhone, shippingAddress);
-        SubTotalAmount = 0;
-        DiscountAmount = 0;
-        TotalAmount = 0;
+        SetCustomerSnapshot(customerName, customerEmail, customerPhone);
+        SetShippingAddress(shippingAddress);
+        SetPaymentMethod(paymentMethod);
+        SetNote(note);
+
+        SubTotalAmount = Money.Zero();
+        DiscountAmount = Money.Zero();
+        TotalAmount = Money.Zero();
         Status = OrderStatus.Pending;
     }
 
-    public void AddItem(int productVariantId, int quantity, decimal unitPrice)
+    public static OrderBuilder CreateBuilder()
     {
+        return new OrderBuilder();
+    }
+
+    internal static Order CreateDraft(
+        int? customerId,
+        int branchId,
+        string customerName,
+        EmailVO customerEmail,
+        PhoneNumber customerPhone,
+        Address shippingAddress,
+        PaymentMethod paymentMethod,
+        string? note
+    )
+    {
+        return new Order(
+            customerId,
+            branchId,
+            customerName,
+            customerEmail,
+            customerPhone,
+            shippingAddress,
+            paymentMethod,
+            note
+        );
+    }
+
+    public void AddItem(int productVariantId, Money unitPrice, int quantity)
+    {
+        EnsureCanModify();
+
         var existingItem = _items.FirstOrDefault(x => x.ProductVariantId == productVariantId);
 
         if (existingItem is not null)
@@ -63,42 +110,74 @@ public class Order : BaseAuditableEntity
             return;
         }
 
-        _items.Add(new OrderItem(productVariantId, quantity, unitPrice));
+        _items.Add(OrderItem.Create(productVariantId, unitPrice, quantity));
 
         RecalculateTotal();
     }
 
-    public void UpdateStatus(OrderStatus newStatus)
+    public void ApplyVoucher(int voucherId, string voucherCode, Money discountAmount)
     {
-        if (!Enum.IsDefined(typeof(OrderStatus), newStatus))
-            throw new ArgumentException("Invalid order status.", nameof(newStatus));
+        EnsureCanModify();
 
-        Status = newStatus;
-    }
+        if (!_items.Any())
+            throw new InvalidOperationException("Cannot apply voucher to an empty order.");
 
-    public void ApplyVoucher(int voucherId, string voucherCode, decimal discountAmount)
-    {
-        if (voucherId <= 0)
-            throw new ArgumentException("Voucher id is required.", nameof(voucherId));
-
-        if (string.IsNullOrWhiteSpace(voucherCode))
-            throw new ArgumentException("Voucher code is required.", nameof(voucherCode));
-
-        if (discountAmount < 0)
-            throw new ArgumentException("Discount amount cannot be negative.", nameof(discountAmount));
-
-        if (_vouchers.Count != 0)
+        if (OrderVoucher is not null)
             throw new InvalidOperationException("Order already has a voucher applied.");
 
-        DiscountAmount = decimal.Round(discountAmount, 2, MidpointRounding.AwayFromZero);
-        _vouchers.Add(new OrderVoucher(voucherId, voucherCode, DiscountAmount));
+        DiscountAmount = discountAmount.CapAt(SubTotalAmount);
+
+        OrderVoucher = new OrderVoucher(voucherId, voucherCode, DiscountAmount);
+
         RecalculateTotal();
+    }
+
+    public void SetShippingFee(Money shippingFee)
+    {
+        EnsureCanModify();
+
+        ShippingFee = shippingFee ?? throw new ArgumentNullException(nameof(shippingFee));
+
+        RecalculateTotal();
+    }
+
+    public void Confirm()
+    {
+        EnsureStatus(OrderStatus.Pending);
+
+        if (!_items.Any())
+            throw new InvalidOperationException("Cannot confirm an empty order.");
+
+        Status = OrderStatus.Confirmed;
     }
 
     private void RecalculateTotal()
     {
-        SubTotalAmount = _items.Sum(x => x.LineTotal);
-        TotalAmount = Math.Max(0, SubTotalAmount - DiscountAmount);
+        var subtotal = Money.Zero();
+
+        foreach (var item in _items)
+        {
+            subtotal = subtotal.Add(item.LineTotal);
+        }
+
+        SubTotalAmount = subtotal;
+        DiscountAmount = DiscountAmount.CapAt(SubTotalAmount);
+
+        TotalAmount = SubTotalAmount.ApplyDiscount(DiscountAmount).Add(ShippingFee);
+    }
+
+    private void EnsureCanModify()
+    {
+        if (Status != OrderStatus.Pending)
+            throw new InvalidOperationException("Only pending orders can be modified.");
+    }
+
+    private void EnsureStatus(params OrderStatus[] allowedStatuses)
+    {
+        if (!allowedStatuses.Contains(Status))
+            throw new InvalidOperationException(
+                $"Order status '{Status}' is not allowed for this operation."
+            );
     }
 
     private void SetCustomerId(int? customerId)
@@ -119,35 +198,51 @@ public class Order : BaseAuditableEntity
 
     private void SetCustomerSnapshot(
         string customerName,
-        string? customerEmail,
-        string customerPhone,
-        string shippingAddress
+        EmailVO customerEmail,
+        PhoneNumber customerPhone
     )
     {
         if (string.IsNullOrWhiteSpace(customerName))
             throw new ArgumentException("Customer name is required.", nameof(customerName));
 
+        customerName = customerName.Trim();
+
         if (customerName.Length > 200)
-            throw new ArgumentException("Customer name must not exceed 200 characters.", nameof(customerName));
+            throw new ArgumentException(
+                "Customer name must not exceed 200 characters.",
+                nameof(customerName)
+            );
 
-        if (!string.IsNullOrWhiteSpace(customerEmail) && customerEmail.Length > 256)
-            throw new ArgumentException("Customer email must not exceed 256 characters.", nameof(customerEmail));
+        if (customerEmail.IsEmpty())
+            throw new ArgumentException("Customer email is required.", nameof(customerEmail));
 
-        if (string.IsNullOrWhiteSpace(customerPhone))
+        if (customerPhone.IsEmpty())
             throw new ArgumentException("Customer phone is required.", nameof(customerPhone));
 
-        if (customerPhone.Length > 20)
-            throw new ArgumentException("Customer phone must not exceed 20 characters.", nameof(customerPhone));
+        CustomerName = customerName;
+        CustomerEmail = customerEmail;
 
-        if (string.IsNullOrWhiteSpace(shippingAddress))
-            throw new ArgumentException("Shipping address is required.", nameof(shippingAddress));
+        CustomerPhone = customerPhone;
+    }
 
-        if (shippingAddress.Length > 500)
-            throw new ArgumentException("Shipping address must not exceed 500 characters.", nameof(shippingAddress));
+    private void SetShippingAddress(Address shippingAddress)
+    {
+        ShippingAddress =
+            shippingAddress ?? throw new ArgumentNullException(nameof(shippingAddress));
+    }
 
-        CustomerName = customerName.Trim();
-        CustomerEmail = string.IsNullOrWhiteSpace(customerEmail) ? null : customerEmail.Trim();
-        CustomerPhone = customerPhone.Trim();
-        ShippingAddress = shippingAddress.Trim();
+    private void SetPaymentMethod(PaymentMethod paymentMethod)
+    {
+        if (!Enum.IsDefined(typeof(PaymentMethod), paymentMethod))
+            throw new ArgumentException("Invalid payment method.", nameof(paymentMethod));
+
+        PaymentMethod = paymentMethod;
+    }
+
+    private void SetNote(string? note)
+    {
+        var value = note?.Trim();
+
+        Note = string.IsNullOrWhiteSpace(value) ? null : value;
     }
 }

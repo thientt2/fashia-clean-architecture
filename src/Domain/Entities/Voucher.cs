@@ -140,7 +140,7 @@ public class Voucher : BaseAuditableEntity
         Status = VoucherStatus.Active;
     }
 
-    public decimal CalculateDiscount(decimal orderAmount)
+    public long CalculateDiscount(long orderAmount)
     {
         if (Status != VoucherStatus.Active)
             throw new InvalidOperationException("Voucher is not active.");
@@ -154,14 +154,15 @@ public class Voucher : BaseAuditableEntity
         if (orderAmount < MinOrderAmount)
             throw new InvalidOperationException("Order amount does not meet voucher minimum.");
 
-        var discount = DiscountType == DiscountType.Percentage
-            ? orderAmount * DiscountAmount / 100
-            : DiscountAmount;
+        var discount =
+            DiscountType == DiscountType.Percentage
+                ? orderAmount * DiscountAmount / 100
+                : DiscountAmount;
 
         if (MaxDiscountAmount > 0)
             discount = Math.Min(discount, MaxDiscountAmount);
 
-        return decimal.Round(Math.Min(discount, orderAmount), 2, MidpointRounding.AwayFromZero);
+        return discount;
     }
 
     public void MarkUsed()

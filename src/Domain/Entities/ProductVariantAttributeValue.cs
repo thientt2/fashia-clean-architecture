@@ -1,4 +1,5 @@
 namespace Fashia.Domain.Entities;
+
 public class ProductVariantAttributeValue
 {
     private ProductVariantAttributeValue() { }

@@ -1,5 +1,3 @@
-using Fashia.Application.Products.Commands.CreateProduct;
-
 namespace Fashia.Web.Endpoints.Products.Requests;
 
 public sealed record CreateProductRequest
@@ -8,11 +6,11 @@ public sealed record CreateProductRequest
 
     public string Description { get; init; } = string.Empty;
 
-    public List<int> UploadedImageIds { get; init; } = [];
+    public List<int>? UploadedImageIds { get; init; } = [];
 
     public int CategoryId { get; init; }
 
     public int BrandId { get; init; }
 
-    public List<CreateProductVariantRequest> Variants { get; init; } = [];
+    public List<CreateProductVariantRequest?>? Variants { get; init; } = [];
 }

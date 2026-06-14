@@ -114,7 +114,7 @@ public class Product : BaseAuditableEntity
 
     public ProductVariant AddVariant(Money originalPrice, IEnumerable<int> attributeValueIds)
     {
-        var variant = new ProductVariant(originalPrice, attributeValueIds);
+        var variant = ProductVariant.Create(originalPrice, attributeValueIds);
         _variants.Add(variant);
         return variant;
     }
@@ -139,9 +139,9 @@ public class Product : BaseAuditableEntity
     {
         var value = description?.Trim() ?? string.Empty;
 
-        if (value.Length > 2000)
+        if (value.Length > 1000)
             throw new ArgumentException(
-                "Product description must not exceed 2000 characters.",
+                "Product description must not exceed 1000 characters.",
                 nameof(description)
             );
 

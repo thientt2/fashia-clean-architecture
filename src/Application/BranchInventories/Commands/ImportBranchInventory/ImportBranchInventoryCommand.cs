@@ -19,17 +19,17 @@ public class ImportBranchInventoryCommandHandler : IRequestHandler<ImportBranchI
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _user;
-    private readonly IIdentityService _identityService;
+    private readonly IBranchAuthorizationService _branchAuthorizationService;
 
     public ImportBranchInventoryCommandHandler(
         IApplicationDbContext context,
         IUser user,
-        IIdentityService identityService
+        IBranchAuthorizationService branchAuthorizationService
     )
     {
         _context = context;
         _user = user;
-        _identityService = identityService;
+        _branchAuthorizationService = branchAuthorizationService;
     }
 
     public async Task Handle(
@@ -40,7 +40,7 @@ public class ImportBranchInventoryCommandHandler : IRequestHandler<ImportBranchI
         if (string.IsNullOrWhiteSpace(_user.Id))
             throw new UnauthorizedAccessException();
 
-        var canManageBranch = await _identityService.CanManageBranchAsync(
+        var canManageBranch = await _branchAuthorizationService.CanManageBranchAsync(
             _user.Id,
             request.BranchId
         );

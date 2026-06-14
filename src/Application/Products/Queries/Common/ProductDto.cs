@@ -44,6 +44,19 @@ public sealed class ProductDto
                 .ForMember(
                     dest => dest.Variants,
                     opt => opt.MapFrom(src => src.Variants.OrderBy(v => v.Id))
+                )
+                .ForMember(
+                    dest => dest.ImageUrls,
+                    opt =>
+                        opt.MapFrom(src =>
+                            src.Images.Select(i => new ImageDto
+                            {
+                                UploadedFileId = i.UploadedFile.Id,
+                                Url = i.UploadedFile.Url,
+                                IsMain = i.IsMain,
+                                DisplayOrder = i.DisplayOrder,
+                            })
+                        )
                 );
         }
     }

@@ -16,9 +16,13 @@ public sealed class CreateProductCommandValidator : AbstractValidator<CreateProd
 
         RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
 
-        RuleFor(x => x.Description).MaximumLength(2000);
+        RuleFor(x => x.Description).MaximumLength(1000);
 
-        RuleFor(x => x.UploadedImageIds).NotEmpty().WithMessage("At least one image is required.");
+        RuleFor(x => x.UploadedImageIds)
+            .NotNull()
+            .WithMessage("Product images are required.")
+            .NotEmpty()
+            .WithMessage("At least one image is required.");
 
         RuleFor(x => x.CategoryId)
             .GreaterThan(0)
@@ -31,14 +35,15 @@ public sealed class CreateProductCommandValidator : AbstractValidator<CreateProd
             .WithMessage("Brand not found.");
 
         RuleFor(x => x.Variants)
+            .NotNull()
+            .WithMessage("Variants are required.")
             .NotEmpty()
             .WithMessage("At least one variant is required.")
             .MustAsync(AttributeValuesExistAsync)
             .WithMessage("One or more attribute values do not exist.");
 
-        RuleForEach(x => x.Variants).SetValidator(new CreateProductVariantDtoValidator());
+        RuleForEach(x => x.Variants).NotNull().SetValidator(new CreateProductVariantDtoValidator());
 
-        // H — validate tất cả images trong một lần query duy nhất
         RuleFor(x => x)
             .MustAsync(AllImagesValidAsync)
             .WithMessage("Some images are invalid, already in use, or do not belong to you.")
@@ -56,7 +61,14 @@ public sealed class CreateProductCommandValidator : AbstractValidator<CreateProd
         CancellationToken ct
     )
     {
-        var ids = variants.SelectMany(x => x.AttributeValueIds).Distinct().ToList();
+        if (variants is null)
+            return false;
+
+        var ids = variants
+            .Where(x => x is not null)
+            .SelectMany(x => x.AttributeValueIds ?? [])
+            .Distinct()
+            .ToList();
 
         if (ids.Count == 0)
             return true;
@@ -68,8 +80,14 @@ public sealed class CreateProductCommandValidator : AbstractValidator<CreateProd
 
     private async Task<bool> AllImagesValidAsync(CreateProductCommand command, CancellationToken ct)
     {
+        if (command.UploadedImageIds is null || command.Variants is null)
+            return false;
+
+        if (string.IsNullOrWhiteSpace(_user.Id))
+            return false;
+
         var allImageIds = command
-            .UploadedImageIds.Concat(command.Variants.SelectMany(v => v.UploadedImageIds))
+            .UploadedImageIds.Concat(command.Variants.SelectMany(v => v?.UploadedImageIds ?? []))
             .Distinct()
             .ToList();
 
@@ -87,14 +105,16 @@ public sealed class CreateProductCommandValidator : AbstractValidator<CreateProd
             .ToListAsync(ct);
 
         if (images.Count != allImageIds.Count)
-            return false; // có ID không tồn tại
+            return false;
         if (images.Any(x => x.IsUsed))
-            return false; // đã được dùng
+            return false;
+        if (images.Any(x => x.CreatedBy != _user.Id))
+            return false;
+
         return true;
     }
 }
 
-// I — giữ nguyên, không thay đổi
 public sealed class CreateProductVariantDtoValidator : AbstractValidator<CreateProductVariantDto>
 {
     public CreateProductVariantDtoValidator()
@@ -104,10 +124,14 @@ public sealed class CreateProductVariantDtoValidator : AbstractValidator<CreateP
             .WithMessage("Original price must be greater than zero.");
 
         RuleFor(x => x.UploadedImageIds)
+            .NotNull()
+            .WithMessage("Variant images are required.")
             .NotEmpty()
             .WithMessage("Variant must have at least one image.");
 
         RuleFor(x => x.AttributeValueIds)
+            .NotNull()
+            .WithMessage("Variant attribute values are required.")
             .NotEmpty()
             .WithMessage("Variant must have at least one attribute value.");
     }

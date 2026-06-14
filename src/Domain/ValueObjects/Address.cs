@@ -31,16 +31,12 @@ public class Address : ValueObject
 
     public static Address Create(string line1, string ward, string district, string province)
     {
-        if (string.IsNullOrWhiteSpace(line1))
-            throw new ArgumentException("Address line 1 cannot be empty.", nameof(line1));
-        if (string.IsNullOrWhiteSpace(ward))
-            throw new ArgumentException("Ward cannot be empty.", nameof(ward));
-        if (string.IsNullOrWhiteSpace(district))
-            throw new ArgumentException("District cannot be empty.", nameof(district));
-        if (string.IsNullOrWhiteSpace(province))
-            throw new ArgumentException("Province cannot be empty.", nameof(province));
-
         return new Address(line1, ward, district, province);
+    }
+
+    public Address Copy()
+    {
+        return Create(Line1, Ward, District, Province);
     }
 
     protected override IEnumerable<object> GetEqualityComponents()

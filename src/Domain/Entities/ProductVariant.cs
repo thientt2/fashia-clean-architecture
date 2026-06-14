@@ -12,7 +12,7 @@ public class ProductVariant : BaseAuditableEntity
 
     public Percentage DiscountPercentage { get; private set; } = null!;
 
-    public Money SellingPrice => OriginalPrice.Multiply(1 - DiscountPercentage.ToDecimal());
+    public Money SellingPrice => OriginalPrice.ApplyPercentageDiscount(DiscountPercentage.Value);
 
     public IReadOnlyCollection<ProductVariantAttributeValue> AttributeValues =>
         _attributeValues.AsReadOnly();
@@ -23,7 +23,7 @@ public class ProductVariant : BaseAuditableEntity
         // EF Core
     }
 
-    public ProductVariant(Money originalPrice, IEnumerable<int> attributeValueIds)
+    private ProductVariant(Money originalPrice, IEnumerable<int> attributeValueIds)
     {
         OriginalPrice = originalPrice;
         DiscountPercentage = Percentage.Zero;
@@ -34,9 +34,22 @@ public class ProductVariant : BaseAuditableEntity
         }
     }
 
+    public static ProductVariant Create(Money originalPrice, IEnumerable<int> attributeValueIds)
+    {
+        return new ProductVariant(originalPrice, attributeValueIds);
+    }
+
+    private void SetOriginalPrice(Money price)
+    {
+        if (price.IsNegative())
+            throw new ArgumentException("Original price cannot be negative.", nameof(price));
+
+        OriginalPrice = price;
+    }
+
     public void ChangePrice(Money price)
     {
-        OriginalPrice = price;
+        SetOriginalPrice(price);
     }
 
     public void ReplaceAttributeValues(IEnumerable<int> attributeValueIds)

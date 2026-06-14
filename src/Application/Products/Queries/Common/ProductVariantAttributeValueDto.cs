@@ -15,6 +15,7 @@ public sealed class ProductVariantAttributeValueDto
         public Mapping()
         {
             CreateMap<ProductVariantAttributeValue, ProductVariantAttributeValueDto>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.AttributeValueId))
                 .ForMember(dest => dest.Value, opt => opt.MapFrom(src => src.AttributeValue.Value))
                 .ForMember(
                     dest => dest.HexValue,

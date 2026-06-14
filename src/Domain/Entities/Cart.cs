@@ -13,48 +13,60 @@ public class Cart : BaseAuditableEntity
         // EF Core
     }
 
-    public Cart(int customerId)
+    private Cart(int customerId)
     {
-        SetCustomer(customerId);
+        CustomerId = customerId;
     }
 
-    public void AddItem(int productVariantId, int quantity)
+    public static Cart Create(int customerId)
+    {
+        if (customerId <= 0)
+            throw new ArgumentException("Customer id is required.", nameof(customerId));
+
+        return new Cart(customerId);
+    }
+
+    public void AddItem(int productVariantId, int quantity, decimal unitPrice)
     {
         var existingItem = _items.FirstOrDefault(x => x.ProductVariantId == productVariantId);
         if (existingItem is not null)
         {
             existingItem.IncreaseQuantity(quantity);
+            existingItem.RefreshUnitPrice(unitPrice);
             return;
         }
 
-        _items.Add(new CartItem(productVariantId, quantity));
+        _items.Add(CartItem.Create(productVariantId, quantity, unitPrice));
     }
 
-    public void UpdateItemQuantity(int productVariantId, int quantity)
+    public void UpdateItemQuantity(int cartItemId, int quantity)
     {
+        if (quantity <= 0)
+        {
+            RemoveItem(cartItemId);
+            return;
+        }
+
         var item =
-            _items.FirstOrDefault(x => x.ProductVariantId == productVariantId)
+            _items.FirstOrDefault(x => x.Id == cartItemId)
             ?? throw new InvalidOperationException("Cart item not found.");
 
         item.UpdateQuantity(quantity);
     }
 
-    public void RemoveItem(int productVariantId)
+    public void RemoveItem(int cartItemId)
     {
-        var item = _items.FirstOrDefault(x => x.ProductVariantId == productVariantId);
+        var item = _items.FirstOrDefault(x => x.Id == cartItemId);
         if (item is not null)
             _items.Remove(item);
     }
 
-    public void AssignCustomer(int customerId)
+    public void Clear()
     {
-        if (customerId <= 0)
-            throw new ArgumentException("Customer id is required.", nameof(customerId));
-
-        CustomerId = customerId;
+        _items.Clear();
     }
 
-    private void SetCustomer(int customerId)
+    public void AssignCustomer(int customerId)
     {
         if (customerId <= 0)
             throw new ArgumentException("Customer id is required.", nameof(customerId));

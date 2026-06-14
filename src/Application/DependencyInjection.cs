@@ -1,5 +1,7 @@
 ﻿using System.Reflection;
 using Fashia.Application.Common.Behaviours;
+using Fashia.Application.Common.Interfaces;
+using Fashia.Application.Common.Security;
 using Microsoft.Extensions.Hosting;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -8,12 +10,13 @@ public static class DependencyInjection
 {
     public static void AddApplicationServices(this IHostApplicationBuilder builder)
     {
-        builder.Services.AddAutoMapper(cfg => 
-            cfg.AddMaps(Assembly.GetExecutingAssembly()));
+        builder.Services.AddScoped<IBranchAuthorizationService, BranchAuthorizationService>();
+        builder.Services.AddAutoMapper(cfg => cfg.AddMaps(Assembly.GetExecutingAssembly()));
 
         builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
-        builder.Services.AddMediatR(cfg => {
+        builder.Services.AddMediatR(cfg =>
+        {
             cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
             cfg.AddOpenRequestPreProcessor(typeof(LoggingBehaviour<>));
             cfg.AddOpenBehavior(typeof(UnhandledExceptionBehaviour<,>));

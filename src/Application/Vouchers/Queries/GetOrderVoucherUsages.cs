@@ -34,13 +34,9 @@ public sealed class GetOrderVoucherUsagesQueryHandler
             {
                 Id = x.Id,
                 OrderId = x.OrderId,
-                CustomerId = x.Order.CustomerId,
-                CustomerName = x.Order.CustomerName,
                 VoucherId = x.VoucherId,
                 VoucherCode = x.VoucherCode,
-                OrderSubTotalAmount = x.Order.SubTotalAmount,
-                DiscountAmount = x.DiscountAmount,
-                OrderTotalAmount = x.Order.TotalAmount,
+                DiscountAmount = x.DiscountAmount.Amount,
                 AppliedAt = x.AppliedAt,
             })
             .ToListAsync(cancellationToken);

@@ -7,6 +7,8 @@ public sealed record CartDto
     public IReadOnlyCollection<CartItemDto> Items { get; init; } = [];
 
     public decimal SubTotal => Items.Sum(x => x.LineTotal);
+    public int TotalQuantity => Items.Sum(x => x.Quantity);
+    public decimal TotalPrice => SubTotal;
 
     public static CartDto Empty()
     {

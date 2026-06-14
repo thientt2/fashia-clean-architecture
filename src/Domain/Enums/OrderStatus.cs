@@ -3,8 +3,10 @@ namespace Fashia.Domain.Enums;
 public enum OrderStatus
 {
     Pending = 0,
-    Processing = 1,
-    Completed = 2,
-    Cancelled = 3,
-    Refunded = 4,
+
+    Confirmed = 1,
+    Paid = 2,
+    Completed = 3,
+    Cancelled = 4,
+    Refunded = 5,
 }
