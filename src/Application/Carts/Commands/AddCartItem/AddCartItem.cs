@@ -42,23 +42,22 @@ public sealed class AddCartItemCommandHandler : IRequestHandler<AddCartItemComma
             throw new InvalidOperationException("Product is not active.");
         }
 
-        var customerId = await _context
+        var customer = await _context
             .Customers.Where(x => x.UserId == _user.Id)
-            .Select(x => x.Id)
             .FirstOrDefaultAsync(cancellationToken);
 
-        if (customerId == 0)
+        if (customer is null)
         {
             throw new UnauthorizedAccessException("Customer account is required.");
         }
 
         var cart = await _context
             .Carts.Include(x => x.Items)
-            .FirstOrDefaultAsync(x => x.CustomerId == customerId, cancellationToken);
+            .FirstOrDefaultAsync(x => x.CustomerId == customer.Id, cancellationToken);
 
         if (cart is null)
         {
-            cart = Cart.Create(customerId);
+            cart = Cart.Create(customer);
             _context.Carts.Add(cart);
         }
 

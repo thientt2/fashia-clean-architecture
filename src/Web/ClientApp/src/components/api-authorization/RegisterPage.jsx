@@ -17,6 +17,8 @@ export function RegisterPage() {
   const [lastNameTouched, setLastNameTouched] = useState(false);
   const [emailTouched, setEmailTouched] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [phoneNumberTouched, setPhoneNumberTouched] = useState(false);
   const [error, setError] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -25,11 +27,13 @@ export function RegisterPage() {
   const lastNameValid = lastName.trim().length > 0 && lastName.trim().length <= 100;
   const emailValid = validateEmail(email);
   const passwordValid = password.length >= MIN_PASSWORD_LENGTH;
+  const phoneNumberValid = phoneNumber.trim().length > 0 && phoneNumber.trim().length <= 20;
 
   const firstNameInvalid = firstNameTouched ? !firstNameValid : undefined;
   const lastNameInvalid = lastNameTouched ? !lastNameValid : undefined;
   const emailInvalid = emailTouched ? !emailValid : undefined;
   const passwordInvalid = passwordTouched ? !passwordValid : undefined;
+  const phoneNumberInvalid = phoneNumberTouched ? !phoneNumberValid : undefined;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,9 +42,10 @@ export function RegisterPage() {
     setLastNameTouched(true);
     setEmailTouched(true);
     setPasswordTouched(true);
-    if (!firstNameValid || !lastNameValid || !emailValid || !passwordValid) return;
+    setPhoneNumberTouched(true);
+    if (!firstNameValid || !lastNameValid || !emailValid || !passwordValid || !phoneNumberValid) return;
     try {
-      await register(email, password, firstName.trim(), lastName.trim());
+      await register(email, password, firstName.trim(), lastName.trim(), phoneNumber.trim());
       navigate('/login');
     } catch {
       setError('Registration failed. Please try again.');
@@ -93,6 +98,16 @@ export function RegisterPage() {
           {passwordTouched && !passwordValid
             ? `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`
             : ''}
+        </small>
+        <label htmlFor="phone-number">Phone number</label>
+        <input type="tel" id="phone-number" autoComplete="tel"
+          value={phoneNumber}
+          onChange={e => setPhoneNumber(e.target.value)}
+          onBlur={() => setPhoneNumberTouched(true)}
+          aria-invalid={phoneNumberInvalid}
+          aria-describedby="phone-number-helper" />
+        <small id="phone-number-helper">
+          {phoneNumberTouched && !phoneNumberValid ? 'Please enter a valid phone number.' : ''}
         </small>
         <button type="submit">Register</button>
         <p style={{ marginTop: '1rem' }}>Already have an account? <Link to="/login">Log in</Link></p>

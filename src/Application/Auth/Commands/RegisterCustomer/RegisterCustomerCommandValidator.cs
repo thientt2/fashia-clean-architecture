@@ -1,3 +1,4 @@
+using Fashia.Domain.ValueObjects;
 using FluentValidation;
 
 namespace Fashia.Application.Auth.Commands.RegisterCustomer;
@@ -13,5 +14,9 @@ public class RegisterCustomerCommandValidator : AbstractValidator<RegisterCustom
         RuleFor(x => x.FirstName).NotEmpty().MaximumLength(100);
 
         RuleFor(x => x.LastName).NotEmpty().MaximumLength(100);
+        RuleFor(x => x.PhoneNumber)
+            .NotEmpty()
+            .Must(PhoneNumber.IsValid)
+            .WithMessage("Invalid phone number format.");
     }
 }

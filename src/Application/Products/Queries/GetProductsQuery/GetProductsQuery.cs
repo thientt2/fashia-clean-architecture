@@ -47,9 +47,9 @@ public sealed class GetProductsQueryHandler
                     {
                         Id = v.Id,
                         OriginalPrice = v.OriginalPrice.Amount,
-                        DiscountPercentage = v.DiscountPercentage.Value,
+                        DiscountPercentage = v.DiscountPercentage.BasisPoints,
                         SellingPrice =
-                            v.OriginalPrice.Amount * (1 - v.DiscountPercentage.Value / 100),
+                            v.OriginalPrice.Amount * (1 - v.DiscountPercentage.BasisPoints / 100),
                         AttributeValues = v
                             .AttributeValues.OrderBy(av => av.AttributeValue.Value)
                             .Select(av => new ProductVariantAttributeValueDto

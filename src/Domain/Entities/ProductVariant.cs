@@ -12,7 +12,9 @@ public class ProductVariant : BaseAuditableEntity
 
     public Percentage DiscountPercentage { get; private set; } = null!;
 
-    public Money SellingPrice => OriginalPrice.ApplyPercentageDiscount(DiscountPercentage.Value);
+    public Money SellingPrice => OriginalPrice.ApplyDiscountRate(DiscountPercentage);
+
+    public ProductVariantStatus Status { get; private set; } = ProductVariantStatus.Active;
 
     public IReadOnlyCollection<ProductVariantAttributeValue> AttributeValues =>
         _attributeValues.AsReadOnly();

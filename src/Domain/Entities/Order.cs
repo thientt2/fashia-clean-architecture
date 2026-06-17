@@ -163,7 +163,7 @@ public class Order : BaseAuditableEntity
         SubTotalAmount = subtotal;
         DiscountAmount = DiscountAmount.CapAt(SubTotalAmount);
 
-        TotalAmount = SubTotalAmount.ApplyDiscount(DiscountAmount).Add(ShippingFee);
+        TotalAmount = SubTotalAmount.ApplyDiscountAmount(DiscountAmount).Add(ShippingFee);
     }
 
     private void EnsureCanModify()

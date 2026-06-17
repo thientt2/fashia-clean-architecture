@@ -9,12 +9,15 @@ public class CartConfiguration : IEntityTypeConfiguration<Cart>
 {
     public void Configure(EntityTypeBuilder<Cart> builder)
     {
+        builder.Property(x => x.CustomerId).IsRequired();
+
+        builder.HasIndex(x => x.CustomerId).IsUnique();
+
         builder
             .HasOne(x => x.Customer)
-            .WithMany()
-            .HasForeignKey(x => x.CustomerId)
-            .IsRequired(false)
-            .OnDelete(DeleteBehavior.Restrict);
+            .WithOne()
+            .HasForeignKey<Cart>(x => x.CustomerId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder
             .HasMany(x => x.Items)

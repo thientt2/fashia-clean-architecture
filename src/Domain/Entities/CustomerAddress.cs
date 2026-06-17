@@ -25,6 +25,21 @@ public class CustomerAddress : BaseAuditableEntity
         Address = address ?? throw new ArgumentNullException(nameof(address));
     }
 
+    public CustomerAddress(
+        int customerId,
+        string customerName,
+        PhoneNumber customerPhone,
+        Address address
+    )
+        : this(customerId, address)
+    {
+        if (string.IsNullOrWhiteSpace(customerName))
+            throw new ArgumentException("Customer name is required.", nameof(customerName));
+
+        CustomerName = customerName.Trim();
+        CustomerPhone = customerPhone ?? throw new ArgumentNullException(nameof(customerPhone));
+    }
+
     public string ToShippingAddress()
     {
         return string.Join(

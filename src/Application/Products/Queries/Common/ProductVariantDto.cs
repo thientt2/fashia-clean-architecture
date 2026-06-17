@@ -30,7 +30,7 @@ public sealed class ProductVariantDto
                 )
                 .ForMember(
                     dest => dest.DiscountPercentage,
-                    opt => opt.MapFrom(src => src.DiscountPercentage.Value)
+                    opt => opt.MapFrom(src => src.DiscountPercentage.BasisPoints)
                 )
                 .ForMember(
                     dest => dest.SellingPrice,

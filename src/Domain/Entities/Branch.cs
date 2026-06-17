@@ -73,6 +73,14 @@ public class Branch : BaseAuditableEntity
         Name = name;
     }
 
+    public bool IsActive()
+    {
+        if (Status == BranchStatus.Active)
+            return true;
+
+        return false;
+    }
+
     private void SetIsMain(bool isMain)
     {
         if (isMain && Status == BranchStatus.Inactive)

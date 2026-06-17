@@ -39,4 +39,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
         base.OnModelCreating(builder);
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }
+
+    public async Task<IApplicationDbContextTransaction> BeginTransactionAsync(
+        CancellationToken cancellationToken
+    )
+    {
+        var transaction = await Database.BeginTransactionAsync(cancellationToken);
+
+        return new ApplicationDbContextTransaction(transaction);
+    }
 }

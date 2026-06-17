@@ -61,7 +61,7 @@ public sealed class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQ
                 {
                     Id = v.Id,
                     OriginalPrice = v.OriginalPrice.Amount,
-                    DiscountPercentage = v.DiscountPercentage.Value,
+                    DiscountPercentage = v.DiscountPercentage.BasisPoints,
                     SellingPrice = v.SellingPrice.Amount, // ← Domain property, tính trong memory
                     AttributeValues = v
                         .AttributeValues.OrderBy(av => av.AttributeValue.Value)

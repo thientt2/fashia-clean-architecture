@@ -21,14 +21,15 @@ export function AuthProvider({ children }) {
     client.login(true, undefined, new LoginRequest({ email, password }))
       .then(() => setIsAuthenticated(true));
 
-  const register = (email, password, firstName, lastName) =>
+  const register = (email, password, firstName, lastName, phoneNumber) =>
     authClient.registerCustomer(new RegisterCustomerCommand({
       email,
       password,
       firstName,
-      lastName
+      lastName,
+      phoneNumber
     }));
-
+    
   const logout = () =>
     client.logout({})
       .then(() => setIsAuthenticated(false));

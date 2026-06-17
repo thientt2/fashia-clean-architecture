@@ -25,4 +25,7 @@ public interface IApplicationDbContext
     DbSet<CustomerVoucher> CustomerVouchers { get; }
     DbSet<UploadedFile> UploadedFiles { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
+    Task<IApplicationDbContextTransaction> BeginTransactionAsync(
+        CancellationToken cancellationToken
+    );
 }

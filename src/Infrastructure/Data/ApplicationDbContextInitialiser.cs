@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Fashia.Domain.Constants;
 using Fashia.Domain.Entities;
 using Fashia.Domain.ValueObjects;
@@ -32,18 +32,21 @@ public class ApplicationDbContextInitialiser
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly IInventoryMatrixInitializer _inventoryInitializer;
 
     public ApplicationDbContextInitialiser(
         ILogger<ApplicationDbContextInitialiser> logger,
         ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
-        RoleManager<IdentityRole> roleManager
+        RoleManager<IdentityRole> roleManager,
+        IInventoryMatrixInitializer inventoryInitializer
     )
     {
         _logger = logger;
         _context = context;
         _userManager = userManager;
         _roleManager = roleManager;
+        _inventoryInitializer = inventoryInitializer;
     }
 
     public async Task InitialiseAsync()
@@ -67,6 +70,7 @@ public class ApplicationDbContextInitialiser
         {
             await TrySeedAsync();
             await SeedCategoriesAsync();
+            await SeedProductsAsync();
         }
         catch (Exception ex)
         {
@@ -357,7 +361,7 @@ public class ApplicationDbContextInitialiser
                     originalFileName: "8a74966c70a19c149e693be1d8fea0fb.jpg",
                     contentType: "image/jpg",
                     sizeInBytes: 204715,
-                    url: "	https://res.cloudinary.com/dln6n09l2/image/upload/v1780836893/temporary/products/4424ae5b88f442b5b16251764116f493_8a74966c70a19c149e693be1d8fea0fb.jpg",
+                    url: "https://res.cloudinary.com/dln6n09l2/image/upload/v1780836893/temporary/products/4424ae5b88f442b5b16251764116f493_8a74966c70a19c149e693be1d8fea0fb.jpg",
                     publicId: "4424ae5b88f442b5b16251764116f493_8a74966c70a19c149e693be1d8fea0fb",
                     folder: "temporary/products"
                 )
@@ -387,8 +391,311 @@ public class ApplicationDbContextInitialiser
                 )
             );
 
+            _context.UploadedFiles.Add(
+                new UploadedFile(
+                    fileName: "0989fb63e2cff36d8ccf27201c5e853b_fufsq8",
+                    originalFileName: "0989fb63e2cff36d8ccf27201c5e853b.jpg",
+                    contentType: "image/jpg",
+                    sizeInBytes: 204715,
+                    url: "https://res.cloudinary.com/dln6n09l2/image/upload/v1781503387/0989fb63e2cff36d8ccf27201c5e853b_fufsq8.jpg",
+                    publicId: "0989fb63e2cff36d8ccf27201c5e853b_fufsq8",
+                    folder: "temporary/products"
+                )
+            );
+
+            _context.UploadedFiles.Add(
+                new UploadedFile(
+                    fileName: "7a692907af840024c66374ca9265a8c7_pwtiam",
+                    originalFileName: "7a692907af840024c66374ca9265a8c7.jpg",
+                    contentType: "image/jpg",
+                    sizeInBytes: 204715,
+                    url: "https://res.cloudinary.com/dln6n09l2/image/upload/v1781503374/7a692907af840024c66374ca9265a8c7_pwtiam.jpg",
+                    publicId: "7a692907af840024c66374ca9265a8c7_pwtiam",
+                    folder: "temporary/products"
+                )
+            );
+
+            _context.UploadedFiles.Add(
+                new UploadedFile(
+                    fileName: "caa2b655edf335edd77f1d1621c93618_hjz8ka",
+                    originalFileName: "caa2b655edf335edd77f1d1621c93618.jpg",
+                    contentType: "image/jpg",
+                    sizeInBytes: 204715,
+                    url: "https://res.cloudinary.com/dln6n09l2/image/upload/v1781503296/caa2b655edf335edd77f1d1621c93618_hjz8ka.jpg",
+                    publicId: "caa2b655edf335edd77f1d1621c93618_hjz8ka",
+                    folder: "temporary/products"
+                )
+            );
+
+            _context.UploadedFiles.Add(
+                new UploadedFile(
+                    fileName: "e3b2220f03c4d6cc1e7d7c44fc7cd21f_l0xkek",
+                    originalFileName: "e3b2220f03c4d6cc1e7d7c44fc7cd21f.jpg",
+                    contentType: "image/jpg",
+                    sizeInBytes: 204715,
+                    url: "https://res.cloudinary.com/dln6n09l2/image/upload/v1781503292/e3b2220f03c4d6cc1e7d7c44fc7cd21f_l0xkek.jpg",
+                    publicId: "e3b2220f03c4d6cc1e7d7c44fc7cd21f_l0xkek",
+                    folder: "temporary/products"
+                )
+            );
+
+            _context.UploadedFiles.Add(
+                new UploadedFile(
+                    fileName: "4c74153eef36bd6bb01728a680e765d9_fwbwim",
+                    originalFileName: "4c74153eef36bd6bb01728a680e765d9.jpg",
+                    contentType: "image/jpg",
+                    sizeInBytes: 204715,
+                    url: "https://res.cloudinary.com/dln6n09l2/image/upload/v1781503230/4c74153eef36bd6bb01728a680e765d9_fwbwim.jpg",
+                    publicId: "4c74153eef36bd6bb01728a680e765d9_fwbwim",
+                    folder: "temporary/products"
+                )
+            );
+
+            _context.UploadedFiles.Add(
+                new UploadedFile(
+                    fileName: "78cf7400573e668e882098d3bc7b1f66_qlombv",
+                    originalFileName: "78cf7400573e668e882098d3bc7b1f66.jpg",
+                    contentType: "image/jpg",
+                    sizeInBytes: 204715,
+                    url: "https://res.cloudinary.com/dln6n09l2/image/upload/v1781503225/78cf7400573e668e882098d3bc7b1f66_qlombv.jpg",
+                    publicId: "78cf7400573e668e882098d3bc7b1f66_qlombv",
+                    folder: "temporary/products"
+                )
+            );
+
+            _context.UploadedFiles.Add(
+                new UploadedFile(
+                    fileName: "ba37e7a4c76ff2d35482e7aab79e0db9_efrvy7",
+                    originalFileName: "ba37e7a4c76ff2d35482e7aab79e0db9.jpg",
+                    contentType: "image/jpg",
+                    sizeInBytes: 204715,
+                    url: "https://res.cloudinary.com/dln6n09l2/image/upload/v1781503150/ba37e7a4c76ff2d35482e7aab79e0db9_efrvy7.jpg",
+                    publicId: "ba37e7a4c76ff2d35482e7aab79e0db9_efrvy7",
+                    folder: "temporary/products"
+                )
+            );
+
+            _context.UploadedFiles.Add(
+                new UploadedFile(
+                    fileName: "8f00d4a1f6c2189d180f613faaba6a8f_nffblb",
+                    originalFileName: "8f00d4a1f6c2189d180f613faaba6a8f.jpg",
+                    contentType: "image/jpg",
+                    sizeInBytes: 204715,
+                    url: "https://res.cloudinary.com/dln6n09l2/image/upload/v1781503201/8f00d4a1f6c2189d180f613faaba6a8f_nffblb.jpg",
+                    publicId: "8f00d4a1f6c2189d180f613faaba6a8f_nffblb",
+                    folder: "temporary/products"
+                )
+            );
+
+            _context.UploadedFiles.Add(
+                new UploadedFile(
+                    fileName: "9f87fab2a45b5b91183a9b4411a655cf_mizwqk",
+                    originalFileName: "9f87fab2a45b5b91183a9b4411a655cf.jpg",
+                    contentType: "image/jpg",
+                    sizeInBytes: 204715,
+                    url: "https://res.cloudinary.com/dln6n09l2/image/upload/v1781503177/9f87fab2a45b5b91183a9b4411a655cf_mizwqk.jpg",
+                    publicId: "9f87fab2a45b5b91183a9b4411a655cf_mizwqk",
+                    folder: "temporary/products"
+                )
+            );
+
+            _context.UploadedFiles.Add(
+                new UploadedFile(
+                    fileName: "b3f13a3c394632ecfaa48e0cb2b9e944_ytht2p",
+                    originalFileName: "b3f13a3c394632ecfaa48e0cb2b9e944.jpg",
+                    contentType: "image/jpg",
+                    sizeInBytes: 204715,
+                    url: "https://res.cloudinary.com/dln6n09l2/image/upload/v1781502915/b3f13a3c394632ecfaa48e0cb2b9e944_ytht2p.jpg",
+                    publicId: "b3f13a3c394632ecfaa48e0cb2b9e944_ytht2p",
+                    folder: "temporary/products"
+                )
+            );
+
+            _context.UploadedFiles.Add(
+                new UploadedFile(
+                    fileName: "5580b224d0a95daa4857f083cfd688de_g0t2co",
+                    originalFileName: "5580b224d0a95daa4857f083cfd688de.jpg",
+                    contentType: "image/jpg",
+                    sizeInBytes: 204715,
+                    url: "https://res.cloudinary.com/dln6n09l2/image/upload/v1781503089/5580b224d0a95daa4857f083cfd688de_g0t2co.jpg",
+                    publicId: "5580b224d0a95daa4857f083cfd688de_g0t2co",
+                    folder: "temporary/products"
+                )
+            );
+
+            _context.UploadedFiles.Add(
+                new UploadedFile(
+                    fileName: "df1629314124e6c3cdbbcf5590396b9b_blukqa",
+                    originalFileName: "df1629314124e6c3cdbbcf5590396b9b.jpg",
+                    contentType: "image/jpg",
+                    sizeInBytes: 204715,
+                    url: "https://res.cloudinary.com/dln6n09l2/image/upload/v1781503123/df1629314124e6c3cdbbcf5590396b9b_blukqa.jpg",
+                    publicId: "df1629314124e6c3cdbbcf5590396b9b_blukqa",
+                    folder: "temporary/products"
+                )
+            );
+
             await _context.SaveChangesAsync();
         }
+
+        var admin = await _userManager.Users.FirstOrDefaultAsync(u =>
+            u.UserName == "administrator@localhost"
+        );
+
+        if (admin == null)
+        {
+            throw new Exception("Administrator user not found.");
+        }
+
+        await _context
+            .UploadedFiles.Where(x => x.CreatedBy == null)
+            .ExecuteUpdateAsync(setters =>
+                setters
+                    .SetProperty(x => x.CreatedBy, admin.Id)
+                    .SetProperty(x => x.LastModifiedBy, admin.Id)
+            );
+    }
+
+    private async Task SeedProductsAsync()
+    {
+        if (!_context.Products.Any())
+        {
+            // admin user is the creator of all seeded products and related data
+            var admin = await _userManager.Users.FirstOrDefaultAsync(u =>
+                u.UserName == "administrator@localhost"
+            );
+
+            if (admin == null)
+            {
+                throw new Exception("Administrator user not found.");
+            }
+
+            // Lookup brands by name
+            var nike = await _context.Brands.FirstAsync(b => b.Name == "Nike");
+            var zara = await _context.Brands.FirstAsync(b => b.Name == "Zara");
+
+            // Lookup categories by name (leaf categories)
+            var T_Shirts_Men = await _context.Categories.FirstAsync(c =>
+                c.Name == "Áo thun nam ngắn tay không cổ"
+            );
+
+            var T_Shirts_Women = await _context.Categories.FirstAsync(c =>
+                c.Name == "Áo thun nữ ngắn tay không cổ"
+            );
+
+            // Lookup attribute values by name
+            var colorBlack = await _context.AttributeValues.FirstAsync(v => v.Value == "Đen");
+            var colorWhite = await _context.AttributeValues.FirstAsync(v => v.Value == "Trắng");
+            var colorRed = await _context.AttributeValues.FirstAsync(v => v.Value == "Đỏ");
+
+            var sizeS = await _context.AttributeValues.FirstAsync(v => v.Value == "S");
+            var sizeM = await _context.AttributeValues.FirstAsync(v => v.Value == "M");
+            var sizeL = await _context.AttributeValues.FirstAsync(v => v.Value == "L");
+
+            var materialCotton = await _context.AttributeValues.FirstAsync(v =>
+                v.Value == "Cotton"
+            );
+
+            // ── Product 1: Áo thun nam Nike Sportswear ──
+            var product1 = new Product(
+                name: "Áo thun nam Nike Sportswear",
+                categoryId: T_Shirts_Men.Id,
+                brandId: nike.Id,
+                description: "Áo thun nam Nike Sportswear với chất liệu cotton cao cấp, thoáng mát và thoải mái. Thiết kế basic dễ phối đồ, phù hợp cho mọi hoạt động hàng ngày.",
+                uploadedImageIds: new List<int> { 1, 2, 3 }
+            );
+
+            var v1_1 = product1.AddVariant(
+                Money.Create(650_000),
+                new[] { colorBlack.Id, sizeM.Id, materialCotton.Id }
+            );
+            v1_1.AddImage(uploadedFileId: 4, displayOrder: 0);
+
+            var v1_2 = product1.AddVariant(
+                Money.Create(650_000),
+                new[] { colorBlack.Id, sizeL.Id, materialCotton.Id }
+            );
+            v1_2.AddImage(uploadedFileId: 5, displayOrder: 0);
+
+            var v1_3 = product1.AddVariant(
+                Money.Create(650_000),
+                new[] { colorWhite.Id, sizeM.Id, materialCotton.Id }
+            );
+            v1_3.AddImage(uploadedFileId: 6, displayOrder: 0);
+
+            var v1_4 = product1.AddVariant(
+                Money.Create(650_000),
+                new[] { colorWhite.Id, sizeL.Id, materialCotton.Id }
+            );
+            v1_4.AddImage(uploadedFileId: 7, displayOrder: 0);
+
+            _context.Products.Add(product1);
+
+            // ── Product 2: Áo sơ mi nữ Zara Basic ──
+            var product2 = new Product(
+                name: "Áo sơ mi nữ Zara Basic",
+                categoryId: T_Shirts_Women.Id,
+                brandId: zara.Id,
+                description: "Áo sơ mi nữ Zara Basic tay dài, phong cách thanh lịch phù hợp đi làm và dạo phố. Chất vải mềm mại, form dáng thoải mái.",
+                uploadedImageIds: new List<int> { 8, 9, 10 }
+            );
+
+            var v2_1 = product2.AddVariant(
+                Money.Create(750_000),
+                new[] { colorWhite.Id, sizeS.Id }
+            );
+            v2_1.AddImage(uploadedFileId: 11, displayOrder: 0);
+
+            var v2_2 = product2.AddVariant(
+                Money.Create(750_000),
+                new[] { colorWhite.Id, sizeM.Id }
+            );
+            v2_2.AddImage(uploadedFileId: 12, displayOrder: 0);
+
+            var v2_3 = product2.AddVariant(Money.Create(750_000), new[] { colorRed.Id, sizeS.Id });
+            v2_3.AddImage(uploadedFileId: 13, displayOrder: 0);
+
+            _context.Products.Add(product2);
+
+            await _context.SaveChangesAsync(CancellationToken.None);
+
+            await _context
+                .Products.Where(x => x.CreatedBy == null)
+                .ExecuteUpdateAsync(setters =>
+                    setters
+                        .SetProperty(x => x.CreatedBy, admin.Id)
+                        .SetProperty(x => x.LastModifiedBy, admin.Id)
+                );
+
+            await _context
+                .ProductVariants.Where(x => x.CreatedBy == null)
+                .ExecuteUpdateAsync(setters =>
+                    setters
+                        .SetProperty(x => x.CreatedBy, admin.Id)
+                        .SetProperty(x => x.LastModifiedBy, admin.Id)
+                );
+
+            _logger.LogInformation("Seeded {Count} products with variants.", 2);
+        }
+
+        await EnsureBranchVariantInventoriesAsync();
+    }
+
+    private async Task EnsureBranchVariantInventoriesAsync()
+    {
+        var variantIds = await _context
+            .ProductVariants.Select(x => x.Id)
+            .ToListAsync(CancellationToken.None);
+
+        if (variantIds.Count == 0)
+            return;
+
+        await _inventoryInitializer.EnsureForProductVariantsAsync(
+            variantIds,
+            CancellationToken.None
+        );
+
+        await _context.SaveChangesAsync(CancellationToken.None);
     }
 
     private async Task SeedCategoriesAsync()

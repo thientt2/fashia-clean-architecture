@@ -106,7 +106,7 @@ public sealed class CheckoutOrderCommandHandler : IRequestHandler<CheckoutOrderC
                 requestedQuantities.All(requested =>
                     group.Any(inventory =>
                         inventory.ProductVariantId == requested.Key
-                        && inventory.StockQuantity >= requested.Value
+                        && inventory.AvailableQuantity >= requested.Value
                     )
                 )
             )
@@ -138,6 +138,9 @@ public sealed class CheckoutOrderCommandHandler : IRequestHandler<CheckoutOrderC
                 x.BranchId == branchId.Value && x.ProductVariantId == cartItem.ProductVariantId
             );
 
+            var previousStockQuantity = inventory.StockQuantity;
+            var previousReservedQuantity = inventory.ReservedQuantity;
+
             inventory.DecreaseStock(cartItem.Quantity);
 
             orderBuilder.AddItem(variant.Id, variant.SellingPrice, cartItem.Quantity);
@@ -148,7 +151,11 @@ public sealed class CheckoutOrderCommandHandler : IRequestHandler<CheckoutOrderC
                     variant.Id,
                     InventoryTransactionType.Sale,
                     cartItem.Quantity,
-                    "Checkout order sale"
+                    "Checkout order sale",
+                    previousStockQuantity: previousStockQuantity,
+                    newStockQuantity: inventory.StockQuantity,
+                    previousReservedQuantity: previousReservedQuantity,
+                    newReservedQuantity: inventory.ReservedQuantity
                 )
             );
 

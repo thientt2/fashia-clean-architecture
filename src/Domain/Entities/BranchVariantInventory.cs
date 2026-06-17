@@ -7,10 +7,20 @@ public class BranchVariantInventory : BaseAuditableEntity
         // EF Core
     }
 
-    public BranchVariantInventory(int branchId, int variantId)
+    private BranchVariantInventory(int branchId, int variantId, int initialQuantity = 0)
     {
         SetBranchId(branchId);
         SetProductVariantId(variantId);
+        StockQuantity = initialQuantity;
+    }
+
+    public static BranchVariantInventory Create(
+        int branchId,
+        int variantId,
+        int initialQuantity = 0
+    )
+    {
+        return new BranchVariantInventory(branchId, variantId, initialQuantity);
     }
 
     public int BranchId { get; private set; }
@@ -20,38 +30,71 @@ public class BranchVariantInventory : BaseAuditableEntity
     public ProductVariant ProductVariant { get; private set; } = null!;
 
     public int StockQuantity { get; private set; }
+    public int ReservedQuantity { get; private set; }
+    public int AvailableQuantity => StockQuantity - ReservedQuantity;
 
     public void IncreaseStock(int quantity)
     {
-        if (quantity <= 0)
-            throw new ArgumentException(
-                "Quantity to increase must be greater than zero.",
-                nameof(quantity)
-            );
-
+        EnsurePositiveQuantity(quantity, nameof(quantity));
         StockQuantity += quantity;
     }
 
     public void DecreaseStock(int quantity)
     {
-        if (quantity <= 0)
-            throw new ArgumentException(
-                "Quantity to decrease must be greater than zero.",
-                nameof(quantity)
-            );
+        EnsurePositiveQuantity(quantity, nameof(quantity));
 
-        if (quantity > StockQuantity)
-            throw new InvalidOperationException("Cannot decrease stock below zero.");
+        if (quantity > AvailableQuantity)
+            throw new InvalidOperationException("Cannot decrease stock below available quantity.");
 
         StockQuantity -= quantity;
     }
 
     public void AdjustStock(int quantity)
     {
-        if (quantity < 0)
-            throw new ArgumentException("Stock quantity cannot be negative.", nameof(quantity));
+        EnsureNonNegativeQuantity(quantity, nameof(quantity));
+
+        if (quantity < ReservedQuantity)
+        {
+            throw new InvalidOperationException("Cannot adjust stock below reserved quantity.");
+        }
 
         StockQuantity = quantity;
+    }
+
+    public void ReserveStock(int quantity)
+    {
+        EnsurePositiveQuantity(quantity, nameof(quantity));
+
+        if (quantity > AvailableQuantity)
+            throw new InvalidOperationException("Cannot reserve more than available quantity.");
+
+        ReservedQuantity += quantity;
+    }
+
+    public void ReleaseReservedStock(int quantity)
+    {
+        EnsurePositiveQuantity(quantity, nameof(quantity));
+
+        if (quantity > ReservedQuantity)
+            throw new InvalidOperationException("Cannot release more than reserved quantity.");
+
+        ReservedQuantity -= quantity;
+    }
+
+    public void CommitReservedStock(int quantity)
+    {
+        EnsurePositiveQuantity(quantity, nameof(quantity));
+
+        if (quantity > ReservedQuantity)
+            throw new InvalidOperationException("Cannot commit more than reserved quantity.");
+
+        ReservedQuantity -= quantity;
+        StockQuantity -= quantity;
+    }
+
+    public void ReturnStock(int quantity)
+    {
+        IncreaseStock(quantity);
     }
 
     private void SetBranchId(int branchId)
@@ -71,5 +114,17 @@ public class BranchVariantInventory : BaseAuditableEntity
             );
 
         ProductVariantId = variantId;
+    }
+
+    private static void EnsurePositiveQuantity(int quantity, string paramName)
+    {
+        if (quantity <= 0)
+            throw new ArgumentException("Quantity must be greater than zero.", paramName);
+    }
+
+    private static void EnsureNonNegativeQuantity(int quantity, string paramName)
+    {
+        if (quantity < 0)
+            throw new ArgumentException("Quantity cannot be negative.", paramName);
     }
 }

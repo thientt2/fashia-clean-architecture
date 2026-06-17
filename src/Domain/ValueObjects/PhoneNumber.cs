@@ -14,17 +14,25 @@ public class PhoneNumber : ValueObject
 
     public string Value { get; private set; }
 
-    public static PhoneNumber Create(string phone)
+    public static PhoneNumber Create(string value)
     {
-        if (string.IsNullOrWhiteSpace(phone))
+        if (string.IsNullOrWhiteSpace(value))
             throw new ArgumentException("Phone number is required.");
 
-        phone = phone.Trim();
+        value = value.Trim();
 
-        if (!PhoneRegex.IsMatch(phone))
+        if (!PhoneRegex.IsMatch(value))
             throw new ArgumentException("Invalid phone number format.");
 
-        return new PhoneNumber(phone);
+        return new PhoneNumber(value);
+    }
+
+    public static bool IsValid(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return false;
+
+        return PhoneRegex.IsMatch(value.Trim());
     }
 
     public bool IsEmpty()

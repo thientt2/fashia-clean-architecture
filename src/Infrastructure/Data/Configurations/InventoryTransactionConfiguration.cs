@@ -13,6 +13,14 @@ public class InventoryTransactionConfiguration : IEntityTypeConfiguration<Invent
         builder.Property(x => x.Quantity).IsRequired();
 
         builder.Property(x => x.Note).HasMaxLength(500);
+        builder.Property(x => x.PreviousStockQuantity);
+        builder.Property(x => x.NewStockQuantity);
+        builder.Property(x => x.PreviousReservedQuantity);
+        builder.Property(x => x.NewReservedQuantity);
+        builder.Property(x => x.SourceBranchId);
+        builder.Property(x => x.DestinationBranchId);
+        builder.Property(x => x.OrderId);
+        builder.Property(x => x.TransferCorrelationId);
 
         builder
             .HasOne(x => x.Branch)

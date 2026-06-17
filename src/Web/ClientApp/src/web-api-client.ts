@@ -65,67 +65,6 @@ export class AuthClient {
     }
 }
 
-export class BranchInventoriesClient {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
-    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
-
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
-    }
-
-    /**
-     * Import Branch Inventory
-     * @return No Content
-     */
-    importBranchInventory(body: ImportBranchInventoryCommand): Promise<void> {
-        let url_ = this.baseUrl + "/api/branch-inventories";
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(body);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processImportBranchInventory(_response);
-        });
-    }
-
-    protected processImportBranchInventory(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 204) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status === 400) {
-            return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
-            });
-        } else if (status === 401) {
-            return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            return throwException("Forbidden", status, _responseText, _headers);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-}
-
 export class CartClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -1829,6 +1768,700 @@ export class OrdersClient {
     }
 }
 
+export class InventoriesClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * Get Inventory by Branch
+     * @return OK
+     */
+    getInventoryByBranch(branchId: number): Promise<InventoryDto[]> {
+        let url_ = this.baseUrl + "/api/inventories/by-branch/{branchId}";
+        if (branchId === undefined || branchId === null)
+            throw new globalThis.Error("The parameter 'branchId' must be defined.");
+        url_ = url_.replace("{branchId}", encodeURIComponent("" + branchId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetInventoryByBranch(_response);
+        });
+    }
+
+    protected processGetInventoryByBranch(response: Response): Promise<InventoryDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(InventoryDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<InventoryDto[]>(null as any);
+    }
+
+    /**
+     * Get Inventory by Product
+     * @return OK
+     */
+    getInventoryByProduct(productId: number): Promise<InventoryDto[]> {
+        let url_ = this.baseUrl + "/api/inventories/by-product/{productId}";
+        if (productId === undefined || productId === null)
+            throw new globalThis.Error("The parameter 'productId' must be defined.");
+        url_ = url_.replace("{productId}", encodeURIComponent("" + productId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetInventoryByProduct(_response);
+        });
+    }
+
+    protected processGetInventoryByProduct(response: Response): Promise<InventoryDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(InventoryDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<InventoryDto[]>(null as any);
+    }
+
+    /**
+     * Get Low Stock Inventory
+     * @return OK
+     */
+    getLowStockInventory(): Promise<InventoryDto[]> {
+        let url_ = this.baseUrl + "/api/inventories/low-stock";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetLowStockInventory(_response);
+        });
+    }
+
+    protected processGetLowStockInventory(response: Response): Promise<InventoryDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(InventoryDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<InventoryDto[]>(null as any);
+    }
+
+    /**
+     * Get Inventory Transaction History
+     * @param branchId (optional) 
+     * @param productVariantId (optional) 
+     * @param type (optional) 
+     * @param orderId (optional) 
+     * @param from (optional) 
+     * @param to (optional) 
+     * @return OK
+     */
+    getInventoryTransactionHistory(branchId: number | undefined, productVariantId: number | undefined, type: number | undefined, orderId: number | undefined, from: Date | undefined, to: Date | undefined, pageNumber: number, pageSize: number): Promise<InventoryTransactionHistoryResult> {
+        let url_ = this.baseUrl + "/api/inventories/transactions?";
+        if (branchId === null)
+            throw new globalThis.Error("The parameter 'branchId' cannot be null.");
+        else if (branchId !== undefined)
+            url_ += "branchId=" + encodeURIComponent("" + branchId) + "&";
+        if (productVariantId === null)
+            throw new globalThis.Error("The parameter 'productVariantId' cannot be null.");
+        else if (productVariantId !== undefined)
+            url_ += "productVariantId=" + encodeURIComponent("" + productVariantId) + "&";
+        if (type === null)
+            throw new globalThis.Error("The parameter 'type' cannot be null.");
+        else if (type !== undefined)
+            url_ += "type=" + encodeURIComponent("" + type) + "&";
+        if (orderId === null)
+            throw new globalThis.Error("The parameter 'orderId' cannot be null.");
+        else if (orderId !== undefined)
+            url_ += "orderId=" + encodeURIComponent("" + orderId) + "&";
+        if (from === null)
+            throw new globalThis.Error("The parameter 'from' cannot be null.");
+        else if (from !== undefined)
+            url_ += "from=" + encodeURIComponent(from ? "" + from.toISOString() : "") + "&";
+        if (to === null)
+            throw new globalThis.Error("The parameter 'to' cannot be null.");
+        else if (to !== undefined)
+            url_ += "to=" + encodeURIComponent(to ? "" + to.toISOString() : "") + "&";
+        if (pageNumber === undefined || pageNumber === null)
+            throw new globalThis.Error("The parameter 'pageNumber' must be defined and cannot be null.");
+        else
+            url_ += "pageNumber=" + encodeURIComponent("" + pageNumber) + "&";
+        if (pageSize === undefined || pageSize === null)
+            throw new globalThis.Error("The parameter 'pageSize' must be defined and cannot be null.");
+        else
+            url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetInventoryTransactionHistory(_response);
+        });
+    }
+
+    protected processGetInventoryTransactionHistory(response: Response): Promise<InventoryTransactionHistoryResult> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = InventoryTransactionHistoryResult.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<InventoryTransactionHistoryResult>(null as any);
+    }
+
+    /**
+     * Initialize Inventory
+     * @return No Content
+     */
+    initializeInventory(body: InventoryStockRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/inventories/initialize";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processInitializeInventory(_response);
+        });
+    }
+
+    protected processInitializeInventory(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Increase Inventory Stock
+     * @return No Content
+     */
+    increaseInventoryStock(body: InventoryStockRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/inventories/increase";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processIncreaseInventoryStock(_response);
+        });
+    }
+
+    protected processIncreaseInventoryStock(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Decrease Inventory Stock
+     * @return No Content
+     */
+    decreaseInventoryStock(body: InventoryStockRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/inventories/decrease";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDecreaseInventoryStock(_response);
+        });
+    }
+
+    protected processDecreaseInventoryStock(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Adjust Inventory Stock
+     * @return No Content
+     */
+    adjustInventoryStock(body: InventoryStockRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/inventories/adjust";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAdjustInventoryStock(_response);
+        });
+    }
+
+    protected processAdjustInventoryStock(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Transfer Inventory Stock
+     * @return No Content
+     */
+    transferInventoryStock(body: TransferInventoryStockRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/inventories/transfer";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processTransferInventoryStock(_response);
+        });
+    }
+
+    protected processTransferInventoryStock(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Reserve Inventory Stock
+     * @return No Content
+     */
+    reserveInventoryStock(body: InventoryReservationRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/inventories/reserve";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReserveInventoryStock(_response);
+        });
+    }
+
+    protected processReserveInventoryStock(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Release Reserved Inventory
+     * @return No Content
+     */
+    releaseReservedInventory(body: InventoryReservationRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/inventories/release-reservation";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReleaseReservedInventory(_response);
+        });
+    }
+
+    protected processReleaseReservedInventory(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Commit Reserved Inventory
+     * @return No Content
+     */
+    commitReservedInventory(body: InventoryReservationRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/inventories/commit-reservation";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCommitReservedInventory(_response);
+        });
+    }
+
+    protected processCommitReservedInventory(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Return Inventory Stock
+     * @return No Content
+     */
+    returnInventoryStock(body: ReturnInventoryStockRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/inventories/return";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReturnInventoryStock(_response);
+        });
+    }
+
+    protected processReturnInventoryStock(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+}
+
 export class CategoriesClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -3077,66 +3710,6 @@ export interface IImageDto {
     [key: string]: any;
 }
 
-export class ImportBranchInventoryCommand implements IImportBranchInventoryCommand {
-    branchId?: number;
-    productVariantId?: number;
-    quantity?: number;
-    note?: string | undefined;
-
-    [key: string]: any;
-
-    constructor(data?: IImportBranchInventoryCommand) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.branchId = _data["branchId"];
-            this.productVariantId = _data["productVariantId"];
-            this.quantity = _data["quantity"];
-            this.note = _data["note"];
-        }
-    }
-
-    static fromJS(data: any): ImportBranchInventoryCommand {
-        data = typeof data === 'object' ? data : {};
-        let result = new ImportBranchInventoryCommand();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["branchId"] = this.branchId;
-        data["productVariantId"] = this.productVariantId;
-        data["quantity"] = this.quantity;
-        data["note"] = this.note;
-        return data;
-    }
-}
-
-export interface IImportBranchInventoryCommand {
-    branchId?: number;
-    productVariantId?: number;
-    quantity?: number;
-    note?: string | undefined;
-
-    [key: string]: any;
-}
-
 export class InfoRequest implements IInfoRequest {
     newEmail?: string | undefined;
     newPassword?: string | undefined;
@@ -3241,6 +3814,462 @@ export class InfoResponse implements IInfoResponse {
 export interface IInfoResponse {
     email: string;
     isEmailConfirmed: boolean;
+
+    [key: string]: any;
+}
+
+export class InventoryDto implements IInventoryDto {
+    branchId?: number;
+    branchName?: string;
+    productId?: number;
+    productName?: string;
+    productVariantId?: number;
+    sellingPrice?: number;
+    stockQuantity?: number;
+    reservedQuantity?: number;
+    availableQuantity?: number;
+    attributeValues?: InventoryVariantAttributeDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IInventoryDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.branchId = _data["branchId"];
+            this.branchName = _data["branchName"];
+            this.productId = _data["productId"];
+            this.productName = _data["productName"];
+            this.productVariantId = _data["productVariantId"];
+            this.sellingPrice = _data["sellingPrice"];
+            this.stockQuantity = _data["stockQuantity"];
+            this.reservedQuantity = _data["reservedQuantity"];
+            this.availableQuantity = _data["availableQuantity"];
+            if (Array.isArray(_data["attributeValues"])) {
+                this.attributeValues = [] as any;
+                for (let item of _data["attributeValues"])
+                    this.attributeValues!.push(InventoryVariantAttributeDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): InventoryDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new InventoryDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["branchId"] = this.branchId;
+        data["branchName"] = this.branchName;
+        data["productId"] = this.productId;
+        data["productName"] = this.productName;
+        data["productVariantId"] = this.productVariantId;
+        data["sellingPrice"] = this.sellingPrice;
+        data["stockQuantity"] = this.stockQuantity;
+        data["reservedQuantity"] = this.reservedQuantity;
+        data["availableQuantity"] = this.availableQuantity;
+        if (Array.isArray(this.attributeValues)) {
+            data["attributeValues"] = [];
+            for (let item of this.attributeValues)
+                data["attributeValues"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IInventoryDto {
+    branchId?: number;
+    branchName?: string;
+    productId?: number;
+    productName?: string;
+    productVariantId?: number;
+    sellingPrice?: number;
+    stockQuantity?: number;
+    reservedQuantity?: number;
+    availableQuantity?: number;
+    attributeValues?: InventoryVariantAttributeDto[];
+
+    [key: string]: any;
+}
+
+export class InventoryReservationRequest implements IInventoryReservationRequest {
+    branchId?: number;
+    productVariantId?: number;
+    orderId?: number;
+    quantity?: number;
+    note?: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IInventoryReservationRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.branchId = _data["branchId"];
+            this.productVariantId = _data["productVariantId"];
+            this.orderId = _data["orderId"];
+            this.quantity = _data["quantity"];
+            this.note = _data["note"];
+        }
+    }
+
+    static fromJS(data: any): InventoryReservationRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new InventoryReservationRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["branchId"] = this.branchId;
+        data["productVariantId"] = this.productVariantId;
+        data["orderId"] = this.orderId;
+        data["quantity"] = this.quantity;
+        data["note"] = this.note;
+        return data;
+    }
+}
+
+export interface IInventoryReservationRequest {
+    branchId?: number;
+    productVariantId?: number;
+    orderId?: number;
+    quantity?: number;
+    note?: string | undefined;
+
+    [key: string]: any;
+}
+
+export class InventoryStockRequest implements IInventoryStockRequest {
+    branchId?: number;
+    productVariantId?: number;
+    quantity?: number;
+    note?: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IInventoryStockRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.branchId = _data["branchId"];
+            this.productVariantId = _data["productVariantId"];
+            this.quantity = _data["quantity"];
+            this.note = _data["note"];
+        }
+    }
+
+    static fromJS(data: any): InventoryStockRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new InventoryStockRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["branchId"] = this.branchId;
+        data["productVariantId"] = this.productVariantId;
+        data["quantity"] = this.quantity;
+        data["note"] = this.note;
+        return data;
+    }
+}
+
+export interface IInventoryStockRequest {
+    branchId?: number;
+    productVariantId?: number;
+    quantity?: number;
+    note?: string | undefined;
+
+    [key: string]: any;
+}
+
+export class InventoryTransactionDto implements IInventoryTransactionDto {
+    id?: number;
+    branchId?: number;
+    branchName?: string;
+    productId?: number;
+    productName?: string;
+    productVariantId?: number;
+    type?: string;
+    quantity?: number;
+    previousStockQuantity?: number | undefined;
+    newStockQuantity?: number | undefined;
+    previousReservedQuantity?: number | undefined;
+    newReservedQuantity?: number | undefined;
+    sourceBranchId?: number | undefined;
+    destinationBranchId?: number | undefined;
+    orderId?: number | undefined;
+    transferCorrelationId?: string | undefined;
+    note?: string | undefined;
+    created?: Date;
+
+    [key: string]: any;
+
+    constructor(data?: IInventoryTransactionDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.branchId = _data["branchId"];
+            this.branchName = _data["branchName"];
+            this.productId = _data["productId"];
+            this.productName = _data["productName"];
+            this.productVariantId = _data["productVariantId"];
+            this.type = _data["type"];
+            this.quantity = _data["quantity"];
+            this.previousStockQuantity = _data["previousStockQuantity"];
+            this.newStockQuantity = _data["newStockQuantity"];
+            this.previousReservedQuantity = _data["previousReservedQuantity"];
+            this.newReservedQuantity = _data["newReservedQuantity"];
+            this.sourceBranchId = _data["sourceBranchId"];
+            this.destinationBranchId = _data["destinationBranchId"];
+            this.orderId = _data["orderId"];
+            this.transferCorrelationId = _data["transferCorrelationId"];
+            this.note = _data["note"];
+            this.created = _data["created"] ? new Date(_data["created"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): InventoryTransactionDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new InventoryTransactionDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["branchId"] = this.branchId;
+        data["branchName"] = this.branchName;
+        data["productId"] = this.productId;
+        data["productName"] = this.productName;
+        data["productVariantId"] = this.productVariantId;
+        data["type"] = this.type;
+        data["quantity"] = this.quantity;
+        data["previousStockQuantity"] = this.previousStockQuantity;
+        data["newStockQuantity"] = this.newStockQuantity;
+        data["previousReservedQuantity"] = this.previousReservedQuantity;
+        data["newReservedQuantity"] = this.newReservedQuantity;
+        data["sourceBranchId"] = this.sourceBranchId;
+        data["destinationBranchId"] = this.destinationBranchId;
+        data["orderId"] = this.orderId;
+        data["transferCorrelationId"] = this.transferCorrelationId;
+        data["note"] = this.note;
+        data["created"] = this.created ? this.created.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IInventoryTransactionDto {
+    id?: number;
+    branchId?: number;
+    branchName?: string;
+    productId?: number;
+    productName?: string;
+    productVariantId?: number;
+    type?: string;
+    quantity?: number;
+    previousStockQuantity?: number | undefined;
+    newStockQuantity?: number | undefined;
+    previousReservedQuantity?: number | undefined;
+    newReservedQuantity?: number | undefined;
+    sourceBranchId?: number | undefined;
+    destinationBranchId?: number | undefined;
+    orderId?: number | undefined;
+    transferCorrelationId?: string | undefined;
+    note?: string | undefined;
+    created?: Date;
+
+    [key: string]: any;
+}
+
+export class InventoryTransactionHistoryResult implements IInventoryTransactionHistoryResult {
+    pageNumber?: number;
+    pageSize?: number;
+    totalCount?: number;
+    items?: InventoryTransactionDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IInventoryTransactionHistoryResult) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.pageNumber = _data["pageNumber"];
+            this.pageSize = _data["pageSize"];
+            this.totalCount = _data["totalCount"];
+            if (Array.isArray(_data["items"])) {
+                this.items = [] as any;
+                for (let item of _data["items"])
+                    this.items!.push(InventoryTransactionDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): InventoryTransactionHistoryResult {
+        data = typeof data === 'object' ? data : {};
+        let result = new InventoryTransactionHistoryResult();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["pageNumber"] = this.pageNumber;
+        data["pageSize"] = this.pageSize;
+        data["totalCount"] = this.totalCount;
+        if (Array.isArray(this.items)) {
+            data["items"] = [];
+            for (let item of this.items)
+                data["items"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IInventoryTransactionHistoryResult {
+    pageNumber?: number;
+    pageSize?: number;
+    totalCount?: number;
+    items?: InventoryTransactionDto[];
+
+    [key: string]: any;
+}
+
+export class InventoryVariantAttributeDto implements IInventoryVariantAttributeDto {
+    id?: number;
+    value?: string;
+    hexValue?: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IInventoryVariantAttributeDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.value = _data["value"];
+            this.hexValue = _data["hexValue"];
+        }
+    }
+
+    static fromJS(data: any): InventoryVariantAttributeDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new InventoryVariantAttributeDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["value"] = this.value;
+        data["hexValue"] = this.hexValue;
+        return data;
+    }
+}
+
+export interface IInventoryVariantAttributeDto {
+    id?: number;
+    value?: string;
+    hexValue?: string | undefined;
 
     [key: string]: any;
 }
@@ -3945,6 +4974,134 @@ export interface IResetPasswordRequest {
     email: string;
     resetCode: string;
     newPassword: string;
+
+    [key: string]: any;
+}
+
+export class ReturnInventoryStockRequest implements IReturnInventoryStockRequest {
+    branchId?: number;
+    productVariantId?: number;
+    orderId?: number | undefined;
+    quantity?: number;
+    note?: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IReturnInventoryStockRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.branchId = _data["branchId"];
+            this.productVariantId = _data["productVariantId"];
+            this.orderId = _data["orderId"];
+            this.quantity = _data["quantity"];
+            this.note = _data["note"];
+        }
+    }
+
+    static fromJS(data: any): ReturnInventoryStockRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ReturnInventoryStockRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["branchId"] = this.branchId;
+        data["productVariantId"] = this.productVariantId;
+        data["orderId"] = this.orderId;
+        data["quantity"] = this.quantity;
+        data["note"] = this.note;
+        return data;
+    }
+}
+
+export interface IReturnInventoryStockRequest {
+    branchId?: number;
+    productVariantId?: number;
+    orderId?: number | undefined;
+    quantity?: number;
+    note?: string | undefined;
+
+    [key: string]: any;
+}
+
+export class TransferInventoryStockRequest implements ITransferInventoryStockRequest {
+    sourceBranchId?: number;
+    destinationBranchId?: number;
+    productVariantId?: number;
+    quantity?: number;
+    note?: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: ITransferInventoryStockRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.sourceBranchId = _data["sourceBranchId"];
+            this.destinationBranchId = _data["destinationBranchId"];
+            this.productVariantId = _data["productVariantId"];
+            this.quantity = _data["quantity"];
+            this.note = _data["note"];
+        }
+    }
+
+    static fromJS(data: any): TransferInventoryStockRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new TransferInventoryStockRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["sourceBranchId"] = this.sourceBranchId;
+        data["destinationBranchId"] = this.destinationBranchId;
+        data["productVariantId"] = this.productVariantId;
+        data["quantity"] = this.quantity;
+        data["note"] = this.note;
+        return data;
+    }
+}
+
+export interface ITransferInventoryStockRequest {
+    sourceBranchId?: number;
+    destinationBranchId?: number;
+    productVariantId?: number;
+    quantity?: number;
+    note?: string | undefined;
 
     [key: string]: any;
 }

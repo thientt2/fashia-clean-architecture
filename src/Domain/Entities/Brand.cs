@@ -5,12 +5,13 @@ namespace Fashia.Domain.Entities;
 public class Brand : BaseAuditableEntity
 {
     private readonly List<Product> _products = new();
+
     private Brand()
     {
         // EF Core
     }
 
-    public Brand(string name, string? description = null, string? imageUrl = null)
+    public Brand(string name, string description, string? imageUrl = null)
     {
         SetName(name);
         SetDescription(description);
@@ -19,7 +20,7 @@ public class Brand : BaseAuditableEntity
 
     public string Name { get; private set; } = string.Empty;
 
-    public string? Description { get; private set; }
+    public string Description { get; private set; } = string.Empty;
 
     public string? ImageUrl { get; private set; }
 
@@ -30,7 +31,7 @@ public class Brand : BaseAuditableEntity
         SetName(name);
     }
 
-    public void UpdateDescription(string? description)
+    public void UpdateDescription(string description)
     {
         SetDescription(description);
     }
@@ -51,10 +52,19 @@ public class Brand : BaseAuditableEntity
         Name = name;
     }
 
-    private void SetDescription(string? description)
+    private void SetDescription(string description)
     {
-        if (description != null && description.Length > 500)
-            throw new ArgumentException("Brand description must not exceed 500 characters.", nameof(description));
+        if (string.IsNullOrWhiteSpace(description))
+            throw new ArgumentException(
+                "Brand description must not be empty.",
+                nameof(description)
+            );
+
+        if (description.Length > 500)
+            throw new ArgumentException(
+                "Brand description must not exceed 500 characters.",
+                nameof(description)
+            );
 
         Description = description;
     }
@@ -62,10 +72,14 @@ public class Brand : BaseAuditableEntity
     private void SetImageUrl(string? imageUrl)
     {
         if (imageUrl != null && imageUrl.Length > 250)
-            throw new ArgumentException("Brand image URL must not exceed 250 characters.", nameof(imageUrl));
+            throw new ArgumentException(
+                "Brand image URL must not exceed 250 characters.",
+                nameof(imageUrl)
+            );
 
         ImageUrl = imageUrl;
     }
+
     public void AddProduct(Product product)
     {
         if (product == null)
@@ -75,5 +89,5 @@ public class Brand : BaseAuditableEntity
             throw new InvalidOperationException("Product does not belong to this brand.");
 
         _products.Add(product);
-    } 
+    }
 }

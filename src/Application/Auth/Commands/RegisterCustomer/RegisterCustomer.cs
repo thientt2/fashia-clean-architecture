@@ -65,24 +65,29 @@ public class RegisterCustomerCommandHandler : IRequestHandler<RegisterCustomerCo
         }
 
         // Create Customer Profile
-        var customer = Customer.Create(
-            userId,
-            request.FirstName,
-            request.LastName,
-            EmailVO.Create(request.Email),
-            PhoneNumber.Create(request.PhoneNumber)
-        );
+        try
+        {
+            var customer = Customer.Create(
+                userId,
+                request.FirstName,
+                request.LastName,
+                EmailVO.Create(request.Email),
+                PhoneNumber.Create(request.PhoneNumber)
+            );
 
-        _context.Customers.Add(customer);
+            var cart = Cart.Create(customer);
 
-        await _context.SaveChangesAsync(cancellationToken);
+            _context.Customers.Add(customer);
+            _context.Carts.Add(cart);
 
-        var cart = Cart.Create(customer.Id);
-
-        _context.Carts.Add(cart);
-
-        await _context.SaveChangesAsync(cancellationToken);
-
-        return customer.Id;
+            await _context.SaveChangesAsync(cancellationToken);
+            return customer.Id;
+        }
+        catch
+        {
+            // Rollback user creation if customer profile creation fails
+            await _identityService.DeleteUserAsync(userId);
+            throw;
+        }
     }
 }

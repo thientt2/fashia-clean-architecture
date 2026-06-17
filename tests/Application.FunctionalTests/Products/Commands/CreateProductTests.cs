@@ -1,9 +1,9 @@
+using System.Net;
+using System.Net.Http.Json;
 using Fashia.Application.Common.Exceptions;
 using Fashia.Application.Products.Commands.CreateProduct;
 using Fashia.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
-using System.Net.Http.Json;
 
 namespace Fashia.Application.FunctionalTests.Products.Commands;
 
@@ -20,8 +20,8 @@ public class CreateProductTests : TestBase
         var productId = await TestApp.SendAsync(command);
 
         var product = await TestApp.ExecuteDbContextAsync(context =>
-            context.Products
-                .Include(x => x.Images)
+            context
+                .Products.Include(x => x.Images)
                 .Include(x => x.Variants)
                     .ThenInclude(x => x.Images)
                 .Include(x => x.Variants)
@@ -38,6 +38,43 @@ public class CreateProductTests : TestBase
         product.Variants.Single().OriginalPrice.Amount.ShouldBe(120_000);
         product.Variants.Single().Images.Count.ShouldBe(1);
         product.Variants.Single().AttributeValues.Count.ShouldBe(1);
+    }
+
+    [Test]
+    public async Task ShouldCreateProductWithMultipleVariantsUsingDefaultDiscount()
+    {
+        await TestApp.RunAsDefaultUserAsync();
+        var seed = await AddProductSeedDataAsync();
+        var secondVariantImage = CreateUploadedFile("variant-2");
+        await TestApp.AddAsync(secondVariantImage);
+
+        var command = CreateValidCommand(seed) with
+        {
+            Variants =
+            [
+                new CreateProductVariantDto
+                {
+                    OriginalPrice = 120_000,
+                    UploadedImageIds = [seed.VariantImageId],
+                    AttributeValueIds = [seed.AttributeValueId],
+                },
+                new CreateProductVariantDto
+                {
+                    OriginalPrice = 130_000,
+                    UploadedImageIds = [secondVariantImage.Id],
+                    AttributeValueIds = [seed.AttributeValueId],
+                },
+            ],
+        };
+
+        var productId = await TestApp.SendAsync(command);
+
+        var product = await TestApp.ExecuteDbContextAsync(context =>
+            context.Products.Include(x => x.Variants).SingleAsync(x => x.Id == productId)
+        );
+
+        product.Variants.Count.ShouldBe(2);
+        product.Variants.Select(x => x.DiscountPercentage.BasisPoints).ShouldAllBe(x => x == 0);
     }
 
     [Test]
@@ -208,7 +245,7 @@ public class CreateProductTests : TestBase
         var category = new Category("Shoes");
         await TestApp.AddAsync(category);
 
-        var brand = new Brand("Contoso");
+        var brand = new Brand("Contoso", "Leading brand in sportswear") { Id = 1 };
         await TestApp.AddAsync(brand);
 
         var attribute = new ProductAttribute("Size");

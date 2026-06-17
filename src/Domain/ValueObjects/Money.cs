@@ -103,14 +103,26 @@ public sealed class Money : ValueObject
         return MultiplyByRate(rate);
     }
 
-    public Money ApplyDiscount(Money discount)
+    public Money ApplyDiscountAmount(Money discountAmount)
     {
-        EnsureSameCurrency(discount);
+        EnsureSameCurrency(discountAmount);
 
-        if (discount.Amount > Amount)
+        if (discountAmount.Amount > Amount)
             return Zero(Currency);
 
-        return Subtract(discount);
+        return Subtract(discountAmount);
+    }
+
+    public Money ApplyDiscountRate(Percentage discountRate)
+    {
+        ArgumentNullException.ThrowIfNull(discountRate);
+        checked
+        {
+            var discountedAmount =
+                Amount * (Percentage.Scale - discountRate.BasisPoints) / Percentage.Scale;
+
+            return Create(discountedAmount, Currency);
+        }
     }
 
     public Money CapAt(Money maximum)

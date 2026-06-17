@@ -5,7 +5,7 @@ using MediatR;
 
 namespace Fashia.Application.Products.Commands.CreateProduct;
 
-public sealed record CreateProductCommand : IRequest<int>
+public sealed record CreateProductCommand : IRequest<int>, ITransactionalRequest
 {
     public string Name { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
@@ -27,8 +27,16 @@ public sealed record CreateProductVariantDto
 public sealed class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, int>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IInventoryMatrixInitializer _inventoryInitializer;
 
-    public CreateProductCommandHandler(IApplicationDbContext context) => _context = context;
+    public CreateProductCommandHandler(
+        IApplicationDbContext context,
+        IInventoryMatrixInitializer inventoryInitializer
+    )
+    {
+        _context = context;
+        _inventoryInitializer = inventoryInitializer;
+    }
 
     public async Task<int> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
@@ -71,6 +79,12 @@ public sealed class CreateProductCommandHandler : IRequestHandler<CreateProductC
         }
 
         _context.Products.Add(product);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        var variantIds = product.Variants.Select(x => x.Id).ToArray();
+
+        await _inventoryInitializer.EnsureForProductVariantsAsync(variantIds, cancellationToken);
+
         await _context.SaveChangesAsync(cancellationToken);
 
         return product.Id;

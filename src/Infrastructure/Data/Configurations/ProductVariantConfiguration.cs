@@ -13,7 +13,7 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
             discount =>
             {
                 discount
-                    .Property(p => p.Value)
+                    .Property(p => p.BasisPoints)
                     .HasColumnName("DiscountPercentage")
                     .HasPrecision(5, 2);
             }

@@ -9,7 +9,15 @@ public class InventoryTransaction : BaseAuditableEntity
         int productVariantId,
         InventoryTransactionType type,
         int quantity,
-        string? note = null
+        string? note = null,
+        int? previousStockQuantity = null,
+        int? newStockQuantity = null,
+        int? previousReservedQuantity = null,
+        int? newReservedQuantity = null,
+        int? sourceBranchId = null,
+        int? destinationBranchId = null,
+        int? orderId = null,
+        Guid? transferCorrelationId = null
     )
     {
         SetBranchId(branchId);
@@ -17,6 +25,15 @@ public class InventoryTransaction : BaseAuditableEntity
         SetType(type);
         SetQuantity(quantity);
         SetNote(note);
+        SetStockSnapshot(
+            previousStockQuantity,
+            newStockQuantity,
+            previousReservedQuantity,
+            newReservedQuantity
+        );
+        SetBranchMetadata(sourceBranchId, destinationBranchId);
+        SetOrderId(orderId);
+        TransferCorrelationId = transferCorrelationId;
     }
 
     public int BranchId { get; private set; }
@@ -30,6 +47,22 @@ public class InventoryTransaction : BaseAuditableEntity
     public int Quantity { get; private set; }
 
     public string? Note { get; private set; }
+
+    public int? PreviousStockQuantity { get; private set; }
+
+    public int? NewStockQuantity { get; private set; }
+
+    public int? PreviousReservedQuantity { get; private set; }
+
+    public int? NewReservedQuantity { get; private set; }
+
+    public int? SourceBranchId { get; private set; }
+
+    public int? DestinationBranchId { get; private set; }
+
+    public int? OrderId { get; private set; }
+
+    public Guid? TransferCorrelationId { get; private set; }
 
     private void SetBranchId(int branchId)
     {
@@ -72,5 +105,50 @@ public class InventoryTransaction : BaseAuditableEntity
             throw new ArgumentException("Quantity must be greater than zero.", nameof(quantity));
 
         Quantity = quantity;
+    }
+
+    private void SetStockSnapshot(
+        int? previousStockQuantity,
+        int? newStockQuantity,
+        int? previousReservedQuantity,
+        int? newReservedQuantity
+    )
+    {
+        EnsureNonNegative(previousStockQuantity, nameof(previousStockQuantity));
+        EnsureNonNegative(newStockQuantity, nameof(newStockQuantity));
+        EnsureNonNegative(previousReservedQuantity, nameof(previousReservedQuantity));
+        EnsureNonNegative(newReservedQuantity, nameof(newReservedQuantity));
+
+        PreviousStockQuantity = previousStockQuantity;
+        NewStockQuantity = newStockQuantity;
+        PreviousReservedQuantity = previousReservedQuantity;
+        NewReservedQuantity = newReservedQuantity;
+    }
+
+    private void SetBranchMetadata(int? sourceBranchId, int? destinationBranchId)
+    {
+        EnsurePositive(sourceBranchId, nameof(sourceBranchId));
+        EnsurePositive(destinationBranchId, nameof(destinationBranchId));
+
+        SourceBranchId = sourceBranchId;
+        DestinationBranchId = destinationBranchId;
+    }
+
+    private void SetOrderId(int? orderId)
+    {
+        EnsurePositive(orderId, nameof(orderId));
+        OrderId = orderId;
+    }
+
+    private static void EnsureNonNegative(int? value, string paramName)
+    {
+        if (value < 0)
+            throw new ArgumentException("Value cannot be negative.", paramName);
+    }
+
+    private static void EnsurePositive(int? value, string paramName)
+    {
+        if (value <= 0)
+            throw new ArgumentException("Value must be greater than zero.", paramName);
     }
 }

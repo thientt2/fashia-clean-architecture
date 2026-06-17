@@ -4,8 +4,8 @@ public class Cart : BaseAuditableEntity
 {
     private readonly List<CartItem> _items = new();
 
-    public int? CustomerId { get; private set; }
-    public Customer? Customer { get; private set; }
+    public int CustomerId { get; private set; }
+    public Customer Customer { get; private set; } = null!;
     public IReadOnlyCollection<CartItem> Items => _items.AsReadOnly();
 
     private Cart()
@@ -13,17 +13,14 @@ public class Cart : BaseAuditableEntity
         // EF Core
     }
 
-    private Cart(int customerId)
+    private Cart(Customer customer)
     {
-        CustomerId = customerId;
+        Customer = customer ?? throw new ArgumentNullException(nameof(customer));
     }
 
-    public static Cart Create(int customerId)
+    public static Cart Create(Customer customer)
     {
-        if (customerId <= 0)
-            throw new ArgumentException("Customer id is required.", nameof(customerId));
-
-        return new Cart(customerId);
+        return new Cart(customer);
     }
 
     public void AddItem(int productVariantId, int quantity, decimal unitPrice)
@@ -66,11 +63,8 @@ public class Cart : BaseAuditableEntity
         _items.Clear();
     }
 
-    public void AssignCustomer(int customerId)
+    public void AssignCustomer(Customer customer)
     {
-        if (customerId <= 0)
-            throw new ArgumentException("Customer id is required.", nameof(customerId));
-
-        CustomerId = customerId;
+        Customer = customer ?? throw new ArgumentNullException(nameof(customer));
     }
 }
