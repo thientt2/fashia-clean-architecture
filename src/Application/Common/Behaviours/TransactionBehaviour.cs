@@ -33,27 +33,37 @@ public sealed class TransactionBehaviour<TRequest, TResponse>
 
         var requestName = typeof(TRequest).Name;
 
-        await using var transaction = await _context.BeginTransactionAsync(cancellationToken);
+        return await _context.ExecuteInTransactionAsync(
+            async () =>
+            {
+                try
+                {
+                    _logger.LogInformation(
+                        "Beginning transaction for request {RequestName}",
+                        requestName
+                    );
 
-        try
-        {
-            _logger.LogInformation("Beginning transaction for request {RequestName}", requestName);
+                    var response = await next();
 
-            var response = await next();
+                    _logger.LogInformation(
+                        "Committed transaction for request {RequestName}",
+                        requestName
+                    );
 
-            await transaction.CommitAsync(cancellationToken);
+                    return response;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Rolling back transaction for request {RequestName}",
+                        requestName
+                    );
 
-            _logger.LogInformation("Committed transaction for request {RequestName}", requestName);
-
-            return response;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Rolling back transaction for request {RequestName}", requestName);
-
-            await transaction.RollbackAsync(cancellationToken);
-
-            throw;
-        }
+                    throw;
+                }
+            },
+            cancellationToken
+        );
     }
 }

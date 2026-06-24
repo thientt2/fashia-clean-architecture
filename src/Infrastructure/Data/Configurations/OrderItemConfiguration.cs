@@ -8,8 +8,12 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
 {
     public void Configure(EntityTypeBuilder<OrderItem> builder)
     {
+        builder.Property(x => x.ProductName).HasMaxLength(200).IsRequired();
+        builder.Property(x => x.ProductVariantName).HasMaxLength(300).IsRequired();
         builder.Property(x => x.Quantity).IsRequired();
         builder.Property(x => x.VariantName).HasMaxLength(200);
+        builder.Property(x => x.VariantAttributes).HasMaxLength(1000);
+        builder.Property(x => x.Sku).HasMaxLength(100);
 
         builder.Ignore(x => x.LineTotal);
 

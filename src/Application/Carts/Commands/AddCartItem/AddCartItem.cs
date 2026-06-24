@@ -34,12 +34,12 @@ public sealed class AddCartItemCommandHandler : IRequestHandler<AddCartItemComma
 
         if (productVariant is null)
         {
-            throw new InvalidOperationException("Product variant not found.");
+            throw new ValidationException("Product variant not found.");
         }
 
         if (productVariant.Product.Status != ProductStatus.Active)
         {
-            throw new InvalidOperationException("Product is not active.");
+            throw new ValidationException("Product is not active.");
         }
 
         var customer = await _context
@@ -80,7 +80,7 @@ public sealed class AddCartItemCommandHandler : IRequestHandler<AddCartItemComma
 
             if (availableQuantity < requestedQuantity)
             {
-                throw new InvalidOperationException("Insufficient inventory.");
+                throw new ValidationException("Insufficient inventory.");
             }
         }
 

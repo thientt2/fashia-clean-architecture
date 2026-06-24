@@ -13,6 +13,9 @@ public sealed record CreateVoucherRequest
     public DateTime ValidFrom { get; init; }
     public DateTime ValidUntil { get; init; }
     public VoucherType VoucherType { get; init; } = VoucherType.All;
+    public int? ProductId { get; init; }
+    public int? CategoryId { get; init; }
+    public int? BrandId { get; init; }
     public Display Display { get; init; } = Display.Public;
     public int QuantityPerUser { get; init; } = 1;
 }
@@ -28,6 +31,9 @@ public sealed record UpdateVoucherRequest
     public DateTime ValidFrom { get; init; }
     public DateTime ValidUntil { get; init; }
     public VoucherType VoucherType { get; init; } = VoucherType.All;
+    public int? ProductId { get; init; }
+    public int? CategoryId { get; init; }
+    public int? BrandId { get; init; }
     public Display Display { get; init; } = Display.Public;
     public int QuantityPerUser { get; init; } = 1;
 }

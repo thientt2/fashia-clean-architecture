@@ -1,6 +1,6 @@
 ﻿namespace Fashia.Domain.Constants;
 
-public abstract class Roles
+public static class Roles
 {
     public const string Administrator = nameof(Administrator);
     public const string BranchManager = nameof(BranchManager);

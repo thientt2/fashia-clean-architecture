@@ -85,7 +85,45 @@ public sealed class OrderBuilder
 
     public OrderBuilder AddItem(int productVariantId, Money unitPrice, int quantity)
     {
-        _items.Add(new OrderItemBuildInput(productVariantId, unitPrice, quantity));
+        _items.Add(
+            new OrderItemBuildInput(
+                productVariantId,
+                $"Product variant {productVariantId}",
+                $"Product variant {productVariantId}",
+                null,
+                null,
+                null,
+                unitPrice,
+                quantity
+            )
+        );
+
+        return this;
+    }
+
+    public OrderBuilder AddItemSnapshot(
+        int productVariantId,
+        string productName,
+        string productVariantName,
+        string? variantName,
+        string? variantAttributes,
+        string? sku,
+        Money unitPrice,
+        int quantity
+    )
+    {
+        _items.Add(
+            new OrderItemBuildInput(
+                productVariantId,
+                productName,
+                productVariantName,
+                variantName,
+                variantAttributes,
+                sku,
+                unitPrice,
+                quantity
+            )
+        );
 
         return this;
     }
@@ -126,11 +164,31 @@ public sealed class OrderBuilder
 
         foreach (var item in _items)
         {
-            order.AddItem(item.ProductVariantId, item.UnitPrice, item.Quantity);
+            order.AddItemSnapshot(
+                item.ProductVariantId,
+                item.ProductName,
+                item.ProductVariantName,
+                item.VariantName,
+                item.VariantAttributes,
+                item.Sku,
+                item.UnitPrice,
+                item.Quantity
+            );
         }
+
+        order.MarkPlaced();
 
         return order;
     }
 
-    private sealed record OrderItemBuildInput(int ProductVariantId, Money UnitPrice, int Quantity);
+    private sealed record OrderItemBuildInput(
+        int ProductVariantId,
+        string ProductName,
+        string ProductVariantName,
+        string? VariantName,
+        string? VariantAttributes,
+        string? Sku,
+        Money UnitPrice,
+        int Quantity
+    );
 }

@@ -24,9 +24,6 @@ public class BranchAuthorizationService : IBranchAuthorizationService
         if (await _identityService.IsInRoleAsync(userId, Roles.Administrator))
             return true;
 
-        if (!await _identityService.IsInRoleAsync(userId, Roles.BranchManager))
-            return false;
-
         var userBranchId = await _identityService.GetUserBranchIdAsync(userId);
 
         return userBranchId == branchId;

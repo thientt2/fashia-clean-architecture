@@ -1,9 +1,12 @@
 using Fashia.Application.Common.Interfaces;
+using Fashia.Application.Common.Security;
+using Fashia.Domain.Constants;
 using Fashia.Domain.Entities;
 using MediatR;
 
 namespace Fashia.Application.Uploads.Commands.UploadImage;
 
+[Authorize(Policy = Policies.ManageProducts)]
 public record UploadImageCommand : IRequest<UploadImageResult>
 {
     public Stream FileStream { get; init; } = default!;

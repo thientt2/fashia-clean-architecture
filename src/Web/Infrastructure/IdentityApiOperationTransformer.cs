@@ -15,40 +15,40 @@ internal sealed class IdentityApiOperationTransformer : IOpenApiOperationTransfo
     private static readonly Dictionary<string, (string Summary, string Description)> _metadata =
         new()
         {
-            ["api/Users/register"] = ("Register", "Creates a new user account."),
-            ["api/Users/login"] = (
+            ["api/users/register"] = ("Register", "Creates a new user account."),
+            ["api/users/login"] = (
                 "Log in",
                 "Authenticates a user. Use ?useCookies=true for cookie-based authentication."
             ),
-            ["api/Users/refresh"] = (
+            ["api/users/refresh"] = (
                 "Refresh token",
                 "Returns a new access token using a valid refresh token."
             ),
-            ["api/Users/confirmEmail"] = (
+            ["api/users/confirmEmail"] = (
                 "Confirm email",
                 "Confirms a user's email address using the token sent by email."
             ),
-            ["api/Users/resendConfirmationEmail"] = (
+            ["api/users/resendConfirmationEmail"] = (
                 "Resend confirmation email",
                 "Sends a new email confirmation link to the specified address."
             ),
-            ["api/Users/forgotPassword"] = (
+            ["api/users/forgotPassword"] = (
                 "Forgot password",
                 "Sends a password reset link to the specified email address."
             ),
-            ["api/Users/resetPassword"] = (
+            ["api/users/resetPassword"] = (
                 "Reset password",
                 "Resets a user's password using the token sent by email."
             ),
-            ["api/Users/manage/2fa"] = (
+            ["api/users/manage/2fa"] = (
                 "Manage two-factor authentication",
                 "Enables, disables, or retrieves two-factor authentication settings."
             ),
-            ["api/Users/manage/info GET"] = (
+            ["api/users/manage/info GET"] = (
                 "Get account info",
                 "Returns the current user's email and two-factor authentication status."
             ),
-            ["api/Users/manage/info POST"] = (
+            ["api/users/manage/info POST"] = (
                 "Update account info",
                 "Updates the current user's email or password."
             ),

@@ -29,6 +29,15 @@ public class ProblemDetailsExceptionHandler : IExceptionHandler
                         Title = "One or more validation errors occurred.",
                     }
             ),
+            BadHttpRequestException bhe => (
+                StatusCodes.Status400BadRequest,
+                CreateProblemDetails(
+                    StatusCodes.Status400BadRequest,
+                    "Bad request",
+                    bhe.Message,
+                    "https://tools.ietf.org/html/rfc9110#section-15.5.1"
+                )
+            ),
             NotFoundException ne => (
                 StatusCodes.Status404NotFound,
                 new ProblemDetails
@@ -57,6 +66,42 @@ public class ProblemDetailsExceptionHandler : IExceptionHandler
                     Type = "https://tools.ietf.org/html/rfc9110#section-15.5.4",
                 }
             ),
+            ConflictException ce => (
+                StatusCodes.Status409Conflict,
+                CreateProblemDetails(
+                    StatusCodes.Status409Conflict,
+                    "Conflict",
+                    ce.Message,
+                    "https://tools.ietf.org/html/rfc9110#section-15.5.10"
+                )
+            ),
+            IdempotencyKeyConflictException or DuplicateRequestInProgressException => (
+                StatusCodes.Status409Conflict,
+                CreateProblemDetails(
+                    StatusCodes.Status409Conflict,
+                    "Checkout request conflict",
+                    exception.Message,
+                    "https://tools.ietf.org/html/rfc9110#section-15.5.10"
+                )
+            ),
+            CheckoutConflictException => (
+                StatusCodes.Status409Conflict,
+                CreateProblemDetails(
+                    StatusCodes.Status409Conflict,
+                    "Checkout conflict",
+                    exception.Message,
+                    "https://tools.ietf.org/html/rfc9110#section-15.5.10"
+                )
+            ),
+            InvalidVoucherException => (
+                StatusCodes.Status422UnprocessableEntity,
+                CreateProblemDetails(
+                    StatusCodes.Status422UnprocessableEntity,
+                    "Invalid voucher",
+                    exception.Message,
+                    "https://tools.ietf.org/html/rfc9110#section-15.5.21"
+                )
+            ),
             _ => (-1, null),
         };
 
@@ -69,4 +114,18 @@ public class ProblemDetailsExceptionHandler : IExceptionHandler
             new ProblemDetailsContext { HttpContext = httpContext, ProblemDetails = problemDetails }
         );
     }
+
+    private static ProblemDetails CreateProblemDetails(
+        int status,
+        string title,
+        string detail,
+        string type
+    ) =>
+        new()
+        {
+            Status = status,
+            Title = title,
+            Detail = detail,
+            Type = type,
+        };
 }

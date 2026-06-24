@@ -1,9 +1,16 @@
 using Fashia.Application.Common.Interfaces;
+using Fashia.Application.Common.Security;
+using Fashia.Domain.Constants;
 
 namespace Fashia.Application.Vouchers.Commands.ChangeVoucherStatus;
 
+[Authorize(Policy = Policies.ChangeVoucherStatus)]
 public sealed record DeactivateVoucherCommand(int Id) : IRequest;
+
+[Authorize(Policy = Policies.ChangeVoucherStatus)]
 public sealed record SuspendVoucherCommand(int Id) : IRequest;
+
+[Authorize(Policy = Policies.ChangeVoucherStatus)]
 public sealed record ReactivateVoucherCommand(int Id) : IRequest;
 
 public sealed class DeactivateVoucherCommandHandler : IRequestHandler<DeactivateVoucherCommand>

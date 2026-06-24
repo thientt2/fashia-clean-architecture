@@ -31,6 +31,7 @@ public class BranchVariantInventory : BaseAuditableEntity
 
     public int StockQuantity { get; private set; }
     public int ReservedQuantity { get; private set; }
+    public uint Version { get; private set; }
     public int AvailableQuantity => StockQuantity - ReservedQuantity;
 
     public void IncreaseStock(int quantity)

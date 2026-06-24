@@ -4,6 +4,7 @@ using Fashia.Infrastructure.Data;
 using Fashia.Infrastructure.Data.Interceptors;
 using Fashia.Infrastructure.Email;
 using Fashia.Infrastructure.Identity;
+using Fashia.Infrastructure.ReadServices;
 using Fashia.Infrastructure.Storage;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -42,8 +43,14 @@ public static class DependencyInjection
         );
 
         builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
+        builder.Services.AddTransient<
+            Microsoft.AspNetCore.Identity.IEmailSender<ApplicationUser>,
+            IdentityEmailSender>();
         builder.Services.AddSingleton<IEmailQueue, ChannelEmailQueue>();
         builder.Services.AddHostedService<QueuedEmailSenderService>();
+        builder.Services.AddHostedService<IdempotencyKeyCleanupService>();
+        builder.Services.AddScoped<ISqlConnectionFactory, SqlConnectionFactory>();
+        builder.Services.AddScoped<IProductReadService, ProductReadService>();
 
         builder.EnrichNpgsqlDbContext<ApplicationDbContext>();
 
@@ -63,32 +70,16 @@ public static class DependencyInjection
             })
             .AddIdentityCookies();
 
-        builder
-            .Services.AddAuthorizationBuilder()
-            .AddPolicy(
-                Policies.CanManageCategories,
-                policy => policy.RequireRole(Roles.Administrator)
-            )
-            .AddPolicy(
-                Policies.CanManageProducts,
-                policy => policy.RequireRole(Roles.Administrator)
-            )
-            .AddPolicy(
-                Policies.CanManageBranches,
-                policy => policy.RequireRole(Roles.Administrator)
-            )
-            .AddPolicy(
-                Policies.CanManageBranchInventories,
-                policy => policy.RequireRole(Roles.Administrator, Roles.BranchManager)
-            );
+        builder.Services.AddAuthorizationBuilder();
+        builder.Services.AddPermissionAuthorizationPolicies();
 
         builder
             .Services.AddIdentityCore<ApplicationUser>()
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddSignInManager()
-            .AddDefaultTokenProviders()
-            .AddApiEndpoints();
+            .AddDefaultTokenProviders();
+        // .AddApiEndpoints();
 
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddTransient<IIdentityService, IdentityService>();

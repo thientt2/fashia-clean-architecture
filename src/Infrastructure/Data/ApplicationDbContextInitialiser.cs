@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text.Json;
 using Fashia.Domain.Constants;
 using Fashia.Domain.Entities;
@@ -154,6 +155,25 @@ public class ApplicationDbContextInitialiser
         {
             await _roleManager.CreateAsync(employeeRole);
         }
+
+        // Add permission claims to a role
+        // Administrator role has all permissions
+        await AddPermissionClaimsAsync(
+            _roleManager,
+            Roles.Administrator,
+            Permissions.Categories.Manage,
+            Permissions.Products.Manage,
+            Permissions.Branches.Manage,
+            Permissions.BranchInventories.Manage,
+            Permissions.Vouchers.Manage
+        );
+
+        // BranchManager role has permission to manage branch inventories
+        await AddPermissionClaimsAsync(
+            _roleManager,
+            Roles.BranchManager,
+            Permissions.BranchInventories.Manage
+        );
 
         // Default users
         var administrator = new ApplicationUser
@@ -736,6 +756,39 @@ public class ApplicationDbContextInitialiser
         foreach (var child in model.Children)
         {
             await CreateCategoryTreeAsync(child, category);
+        }
+    }
+
+    private static async Task AddPermissionClaimsAsync(
+        RoleManager<IdentityRole> roleManager,
+        string roleName,
+        params string[] permissions
+    )
+    {
+        var role = await roleManager.FindByNameAsync(roleName);
+
+        if (role is null)
+        {
+            throw new InvalidOperationException($"Role '{roleName}' was not found.");
+        }
+
+        var existingClaims = await roleManager.GetClaimsAsync(role);
+
+        foreach (var permission in permissions.Distinct())
+        {
+            var alreadyExists = existingClaims.Any(c =>
+                c.Type == CustomClaimTypes.Permission && c.Value == permission
+            );
+
+            if (alreadyExists)
+            {
+                continue;
+            }
+
+            await roleManager.AddClaimAsync(
+                role,
+                new Claim(CustomClaimTypes.Permission, permission)
+            );
         }
     }
 }

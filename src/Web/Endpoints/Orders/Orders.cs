@@ -1,6 +1,7 @@
-using Fashia.Application.Orders.Commands.CheckoutOrder;
+using Fashia.Application.Orders.Commands.PlaceOrder;
 using Fashia.Web.Endpoints.Orders.Requests;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Fashia.Web.Endpoints.Orders;
 
@@ -11,7 +12,7 @@ public class Orders : IEndpointGroup
         // groupBuilder.MapGet(GetOrders);
         // groupBuilder.MapGet(GetOrderById, "{id:int}");
         // groupBuilder.MapPost(CreateOrder);
-        groupBuilder.MapPost(CheckoutOrder, "checkout");
+        groupBuilder.MapPost(PlaceOrder, "placeorder").RequireAuthorization();
     }
 
     // [EndpointSummary("Get all Orders")]
@@ -62,27 +63,40 @@ public class Orders : IEndpointGroup
     //     return TypedResults.Created($"/api/orders/{id}", id);
     // }
 
-    [EndpointSummary("Checkout selected Cart Items")]
+    [EndpointSummary("Place order")]
     [EndpointDescription(
-        "Creates an order from selected cart items, recalculates current server-side prices, decreases inventory, and removes only selected items from the persistent cart."
+        "Creates a pending order from the authenticated customer's cart and reserves inventory at the nearest fulfillable branch."
     )]
-    public static async Task<Created<int>> CheckoutOrder(
+    public static async Task<Created<OrderCreated>> PlaceOrder(
         ISender sender,
-        CheckoutOrderRequest request,
+        [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey,
+        PlaceOrderRequest request,
         CancellationToken cancellationToken
     )
     {
-        var id = await sender.Send(
-            new CheckoutOrderCommand
+        var result = await sender.Send(
+            new PlaceOrderCommand
             {
-                CartItemIds = request.CartItemIds,
-                ShippingAddressId = request.ShippingAddressId,
+                IdempotencyKey = idempotencyKey ?? string.Empty,
+                ShippingAddress = new PlaceOrderShippingAddressDto
+                {
+                    CustomerName = request.ShippingAddress.CustomerName,
+                    CustomerEmail = request.ShippingAddress.CustomerEmail,
+                    CustomerPhone = request.ShippingAddress.CustomerPhone,
+                    Line1 = request.ShippingAddress.Line1,
+                    Ward = request.ShippingAddress.Ward,
+                    District = request.ShippingAddress.District,
+                    Province = request.ShippingAddress.Province,
+                    Latitude = request.ShippingAddress.Latitude,
+                    Longitude = request.ShippingAddress.Longitude,
+                },
+                VoucherCode = request.VoucherCode,
                 PaymentMethod = request.PaymentMethod,
                 Note = request.Note,
             },
             cancellationToken
         );
 
-        return TypedResults.Created($"/api/orders/{id}", id);
+        return TypedResults.Created($"/api/orders/{result.OrderId}", result);
     }
 }

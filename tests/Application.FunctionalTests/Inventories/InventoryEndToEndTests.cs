@@ -3,7 +3,7 @@ using Fashia.Application.Inventories.Commands.InitializeInventory;
 using Fashia.Application.Inventories.Commands.ReserveInventoryStock;
 using Fashia.Application.Inventories.Queries.GetInventoryByBranch;
 using Fashia.Application.Inventories.Queries.GetInventoryTransactionHistory;
-using Fashia.Application.Orders.Commands.CheckoutOrder;
+using Fashia.Application.Orders.Commands.PlaceOrder;
 using Fashia.Domain.Entities;
 using Fashia.Domain.Enums;
 using Fashia.Domain.ValueObjects;
@@ -107,7 +107,7 @@ public class InventoryEndToEndTests : TestBase
         var setup = await AddCheckoutSeedDataAsync();
         var destinationBranchId = await AddBranchAsync("Checkout Destination Branch");
 
-        var reservedInventory = new BranchVariantInventory(
+        var reservedInventory = BranchVariantInventory.Create(
             setup.BranchId,
             setup.ProductVariantId
         );
@@ -115,31 +115,24 @@ public class InventoryEndToEndTests : TestBase
         reservedInventory.ReserveStock(8);
         await TestApp.AddAsync(reservedInventory);
 
-        var destinationInventory = new BranchVariantInventory(
+        var destinationInventory = BranchVariantInventory.Create(
             destinationBranchId,
             setup.ProductVariantId
         );
         destinationInventory.IncreaseStock(5);
         await TestApp.AddAsync(destinationInventory);
 
-        var cart = await TestApp.SendAsync(
+        await TestApp.SendAsync(
             new AddCartItemCommand { ProductVariantId = setup.ProductVariantId, Quantity = 3 }
         );
-        var cartItemId = cart.Items.Single().Id;
 
-        var orderId = await TestApp.SendAsync(
-            new CheckoutOrderCommand
-            {
-                CartItemIds = [cartItemId],
-                ShippingAddressId = setup.ShippingAddressId,
-                PaymentMethod = PaymentMethod.CashOnDelivery,
-            }
-        );
+        var result = await TestApp.SendAsync(CreatePlaceOrderCommand());
 
         var order = await TestApp.ExecuteDbContextAsync(context =>
-            context.Orders.SingleAsync(x => x.Id == orderId)
+            context.Orders.SingleAsync(x => x.Id == result.OrderId)
         );
         order.BranchId.ShouldBe(destinationBranchId);
+        order.Status.ShouldBe(OrderStatus.Pending);
 
         var sourceInventoryView = await TestApp.SendAsync(
             new GetInventoryByBranchQuery(setup.BranchId)
@@ -158,28 +151,28 @@ public class InventoryEndToEndTests : TestBase
         var destination = destinationInventoryView.Single(x =>
             x.ProductVariantId == setup.ProductVariantId
         );
-        destination.StockQuantity.ShouldBe(2);
-        destination.ReservedQuantity.ShouldBe(0);
+        destination.StockQuantity.ShouldBe(5);
+        destination.ReservedQuantity.ShouldBe(3);
         destination.AvailableQuantity.ShouldBe(2);
 
-        var saleHistory = await TestApp.SendAsync(
+        var reserveHistory = await TestApp.SendAsync(
             new GetInventoryTransactionHistoryQuery
             {
                 BranchId = destinationBranchId,
                 ProductVariantId = setup.ProductVariantId,
-                Type = InventoryTransactionType.Sale,
+                Type = InventoryTransactionType.Reserve,
                 PageNumber = 1,
                 PageSize = 10,
             }
         );
 
-        saleHistory.TotalCount.ShouldBe(1);
-        var sale = saleHistory.Items.Single();
-        sale.Quantity.ShouldBe(3);
-        sale.PreviousStockQuantity.ShouldBe(5);
-        sale.NewStockQuantity.ShouldBe(2);
-        sale.PreviousReservedQuantity.ShouldBe(0);
-        sale.NewReservedQuantity.ShouldBe(0);
+        reserveHistory.TotalCount.ShouldBe(1);
+        var reservation = reserveHistory.Items.Single();
+        reservation.Quantity.ShouldBe(3);
+        reservation.PreviousStockQuantity.ShouldBe(5);
+        reservation.NewStockQuantity.ShouldBe(5);
+        reservation.PreviousReservedQuantity.ShouldBe(0);
+        reservation.NewReservedQuantity.ShouldBe(3);
     }
 
     private static async Task<InventorySeedData> AddInventorySeedDataAsync()
@@ -315,6 +308,26 @@ public class InventoryEndToEndTests : TestBase
     }
 
     private sealed record InventorySeedData(int BranchId, int ProductVariantId);
+
+    private static PlaceOrderCommand CreatePlaceOrderCommand()
+    {
+        return new PlaceOrderCommand
+        {
+            ShippingAddress = new PlaceOrderShippingAddressDto
+            {
+                CustomerName = "Checkout Customer",
+                CustomerEmail = "checkout@example.test",
+                CustomerPhone = "0369405891",
+                Line1 = "3 Checkout St",
+                Ward = "Ward",
+                District = "District",
+                Province = "Province",
+                Latitude = 10.2M,
+                Longitude = 106.2M,
+            },
+            PaymentMethod = PaymentMethod.CashOnDelivery,
+        };
+    }
 
     private sealed record CheckoutSeedData(
         int BranchId,

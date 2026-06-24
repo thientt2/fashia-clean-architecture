@@ -1,5 +1,6 @@
 using Fashia.Application.Carts.Commands.AddCartItem;
-using Fashia.Application.Orders.Commands.CheckoutOrder;
+using Fashia.Application.Common.Exceptions;
+using Fashia.Application.Orders.Commands.PlaceOrder;
 using Fashia.Domain.Entities;
 using Fashia.Domain.Enums;
 using Fashia.Domain.ValueObjects;
@@ -7,15 +8,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fashia.Application.FunctionalTests.Orders.Commands;
 
-public class CheckoutOrderTests : TestBase
+public class PlaceOrderInventoryRegressionTests : TestBase
 {
     [Test]
-    public async Task ShouldCheckoutFromBranchWithAvailableStock()
+    public async Task ShouldPlaceOrderFromBranchWithAvailableStock()
     {
         var setup = await AddCheckoutSeedDataAsync();
-        var destinationBranchId = await AddBranchAsync("Checkout Available Branch");
+        var destinationBranchId = await AddBranchAsync(
+            "Checkout Available Branch",
+            latitude: 10.2M,
+            longitude: 106.2M
+        );
 
-        var reservedInventory = new BranchVariantInventory(
+        var reservedInventory = BranchVariantInventory.Create(
             setup.BranchId,
             setup.ProductVariantId
         );
@@ -23,28 +28,22 @@ public class CheckoutOrderTests : TestBase
         reservedInventory.ReserveStock(8);
         await TestApp.AddAsync(reservedInventory);
 
-        var availableInventory = new BranchVariantInventory(
+        var availableInventory = BranchVariantInventory.Create(
             destinationBranchId,
             setup.ProductVariantId
         );
         availableInventory.IncreaseStock(5);
         await TestApp.AddAsync(availableInventory);
 
-        var cartItemId = await AddCartItemAsync(setup.ProductVariantId, quantity: 3);
+        await AddCartItemAsync(setup.ProductVariantId, quantity: 3);
 
-        var orderId = await TestApp.SendAsync(
-            new CheckoutOrderCommand
-            {
-                CartItemIds = [cartItemId],
-                ShippingAddressId = setup.ShippingAddressId,
-                PaymentMethod = PaymentMethod.CashOnDelivery,
-            }
-        );
+        var result = await TestApp.SendAsync(CreatePlaceOrderCommand());
 
         var order = await TestApp.ExecuteDbContextAsync(context =>
-            context.Orders.SingleAsync(x => x.Id == orderId)
+            context.Orders.SingleAsync(x => x.Id == result.OrderId)
         );
         order.BranchId.ShouldBe(destinationBranchId);
+        order.Status.ShouldBe(OrderStatus.Pending);
 
         var inventories = await TestApp.ExecuteDbContextAsync(context =>
             context
@@ -55,11 +54,12 @@ public class CheckoutOrderTests : TestBase
 
         inventories.Single(x => x.BranchId == setup.BranchId).StockQuantity.ShouldBe(10);
         inventories.Single(x => x.BranchId == setup.BranchId).ReservedQuantity.ShouldBe(8);
-        inventories.Single(x => x.BranchId == destinationBranchId).StockQuantity.ShouldBe(2);
+        inventories.Single(x => x.BranchId == destinationBranchId).StockQuantity.ShouldBe(5);
+        inventories.Single(x => x.BranchId == destinationBranchId).ReservedQuantity.ShouldBe(3);
 
         var transaction = await TestApp.ExecuteDbContextAsync(context =>
             context.InventoryTransactions.SingleAsync(x =>
-                x.Type == InventoryTransactionType.Sale
+                x.Type == InventoryTransactionType.Reserve
                 && x.BranchId == destinationBranchId
                 && x.ProductVariantId == setup.ProductVariantId
             )
@@ -67,33 +67,26 @@ public class CheckoutOrderTests : TestBase
 
         transaction.Quantity.ShouldBe(3);
         transaction.PreviousStockQuantity.ShouldBe(5);
-        transaction.NewStockQuantity.ShouldBe(2);
+        transaction.NewStockQuantity.ShouldBe(5);
         transaction.PreviousReservedQuantity.ShouldBe(0);
-        transaction.NewReservedQuantity.ShouldBe(0);
-        transaction.Note.ShouldBe("Checkout order sale");
+        transaction.NewReservedQuantity.ShouldBe(3);
+        transaction.Note.ShouldBe("Place order reservation");
     }
 
     [Test]
-    public async Task ShouldRejectCheckoutWhenOnlyReservedStockExists()
+    public async Task ShouldRejectPlaceOrderWhenOnlyReservedStockExists()
     {
         var setup = await AddCheckoutSeedDataAsync();
 
-        var inventory = new BranchVariantInventory(setup.BranchId, setup.ProductVariantId);
+        var inventory = BranchVariantInventory.Create(setup.BranchId, setup.ProductVariantId);
         inventory.IncreaseStock(10);
         inventory.ReserveStock(8);
         await TestApp.AddAsync(inventory);
 
-        var cartItemId = await AddCartItemAsync(setup.ProductVariantId, quantity: 3);
+        await AddCartItemAsync(setup.ProductVariantId, quantity: 3);
 
-        await Should.ThrowAsync<InvalidOperationException>(() =>
-            TestApp.SendAsync(
-                new CheckoutOrderCommand
-                {
-                    CartItemIds = [cartItemId],
-                    ShippingAddressId = setup.ShippingAddressId,
-                    PaymentMethod = PaymentMethod.CashOnDelivery,
-                }
-            )
+        await Should.ThrowAsync<NoFulfillableBranchException>(() =>
+            TestApp.SendAsync(CreatePlaceOrderCommand())
         );
     }
 
@@ -150,18 +143,9 @@ public class CheckoutOrderTests : TestBase
         );
         await TestApp.AddAsync(customer);
 
-        var shippingAddress = new CustomerAddress(
-            customer.Id,
-            "Checkout Customer",
-            customer.CustomerPhone,
-            Address.Create("2 Checkout St", "Ward", "District", "Province")
-        );
-        await TestApp.AddAsync(shippingAddress);
-
         return new CheckoutSeedData(
             branch.Id,
-            variant.Id,
-            shippingAddress.Id
+            variant.Id
         );
     }
 
@@ -178,14 +162,18 @@ public class CheckoutOrderTests : TestBase
         );
     }
 
-    private static async Task<int> AddBranchAsync(string name)
+    private static async Task<int> AddBranchAsync(
+        string name,
+        decimal latitude = 10.1M,
+        decimal longitude = 106.1M
+    )
     {
         var branch = new Branch(
             name,
             PhoneNumber.Create("0369405892"),
             EmailVO.Create($"{Guid.NewGuid():N}@local.test"),
             Address.Create("3 Checkout St", "Ward", "District", "Province"),
-            GeoLocation.Create(10.2M, 106.2M)
+            GeoLocation.Create(latitude, longitude)
         );
 
         await TestApp.AddAsync(branch);
@@ -193,18 +181,35 @@ public class CheckoutOrderTests : TestBase
         return branch.Id;
     }
 
-    private static async Task<int> AddCartItemAsync(int productVariantId, int quantity)
+    private static async Task AddCartItemAsync(int productVariantId, int quantity)
     {
-        var cart = await TestApp.SendAsync(
+        await TestApp.SendAsync(
             new AddCartItemCommand { ProductVariantId = productVariantId, Quantity = quantity }
         );
+    }
 
-        return cart.Items.Single(x => x.ProductVariantId == productVariantId).Id;
+    private static PlaceOrderCommand CreatePlaceOrderCommand()
+    {
+        return new PlaceOrderCommand
+        {
+            ShippingAddress = new PlaceOrderShippingAddressDto
+            {
+                CustomerName = "Checkout Customer",
+                CustomerEmail = "checkout@example.test",
+                CustomerPhone = "0369405891",
+                Line1 = "2 Checkout St",
+                Ward = "Ward",
+                District = "District",
+                Province = "Province",
+                Latitude = 10.2M,
+                Longitude = 106.2M,
+            },
+            PaymentMethod = PaymentMethod.CashOnDelivery,
+        };
     }
 
     private sealed record CheckoutSeedData(
         int BranchId,
-        int ProductVariantId,
-        int ShippingAddressId
+        int ProductVariantId
     );
 }

@@ -18,11 +18,11 @@ export class AuthClient {
     }
 
     /**
-     * Register Customer
-     * @return OK
+     * Register
+     * @return Created
      */
-    registerCustomer(body: RegisterCustomerCommand): Promise<number> {
-        let url_ = this.baseUrl + "/api/auth/register-customer";
+    register(body: RegisterCustomerRequest): Promise<number> {
+        let url_ = this.baseUrl + "/api/auth/register";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -37,20 +37,20 @@ export class AuthClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processRegisterCustomer(_response);
+            return this.processRegister(_response);
         });
     }
 
-    protected processRegisterCustomer(response: Response): Promise<number> {
+    protected processRegister(response: Response): Promise<number> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
+        if (status === 201) {
             return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-                result200 = resultData200 !== undefined ? resultData200 : null as any;
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result201 = resultData201 !== undefined ? resultData201 : null as any;
     
-            return result200;
+            return result201;
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
@@ -347,6 +347,7 @@ export class UsersClient {
     }
 
     /**
+     * Register
      * @return OK
      */
     register(body: RegisterRequest): Promise<void> {
@@ -391,6 +392,7 @@ export class UsersClient {
     }
 
     /**
+     * Log in
      * @param useCookies (optional) 
      * @param useSessionCookies (optional) 
      * @return OK
@@ -446,6 +448,7 @@ export class UsersClient {
     }
 
     /**
+     * Refresh token
      * @return OK
      */
     refresh(body: RefreshRequest): Promise<AccessTokenResponse> {
@@ -491,6 +494,7 @@ export class UsersClient {
     }
 
     /**
+     * Confirm email
      * @param changedEmail (optional) 
      * @return OK
      */
@@ -541,6 +545,7 @@ export class UsersClient {
     }
 
     /**
+     * Resend confirmation email
      * @return OK
      */
     resendConfirmationEmail(body: ResendConfirmationEmailRequest): Promise<void> {
@@ -582,6 +587,7 @@ export class UsersClient {
     }
 
     /**
+     * Forgot password
      * @return OK
      */
     forgotPassword(body: ForgotPasswordRequest): Promise<void> {
@@ -626,6 +632,7 @@ export class UsersClient {
     }
 
     /**
+     * Reset password
      * @return OK
      */
     resetPassword(body: ResetPasswordRequest): Promise<void> {
@@ -670,6 +677,7 @@ export class UsersClient {
     }
 
     /**
+     * Manage two-factor authentication
      * @return OK
      */
     _2fa(body: TwoFactorRequest): Promise<TwoFactorResponse> {
@@ -730,6 +738,7 @@ export class UsersClient {
     }
 
     /**
+     * Get account info
      * @return OK
      */
     infoGET(): Promise<InfoResponse> {
@@ -786,6 +795,7 @@ export class UsersClient {
     }
 
     /**
+     * Update account info
      * @return OK
      */
     infoPOST(body: InfoRequest): Promise<InfoResponse> {
@@ -1383,14 +1393,19 @@ export class UploadsClient {
 
     /**
      * Upload a images
+     * @param file (required)
      * @param folder (optional) 
      * @return OK
      */
-    uploadImage(folder: string | undefined): Promise<UploadImageResult> {
+    uploadImage(file: File, folder: string | undefined): Promise<UploadImageResult> {
         let url_ = this.baseUrl + "/api/uploads/images";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = new FormData();
+        if (file === null || file === undefined)
+            throw new globalThis.Error("The parameter 'file' cannot be null.");
+        else
+            content_.append("file", file);
         if (folder === null || folder === undefined)
             throw new globalThis.Error("The parameter 'folder' cannot be null.");
         else
@@ -1452,10 +1467,53 @@ export class ProductsClient {
 
     /**
      * Get all Products
+     * @param search (optional) 
+     * @param brandId (optional) 
+     * @param categoryId (optional) 
+     * @param minPrice (optional) 
+     * @param maxPrice (optional) 
+     * @param sortBy (optional) 
+     * @param sortDirection (optional) 
      * @return OK
      */
-    getProducts(): Promise<ProductDto[]> {
-        let url_ = this.baseUrl + "/api/products";
+    getProducts(search: string | undefined, brandId: number | undefined, categoryId: number | undefined, minPrice: number | undefined, maxPrice: number | undefined, pageNumber: number, pageSize: number, sortBy: string | undefined, sortDirection: string | undefined): Promise<PaginatedListOfProductListItemDto> {
+        let url_ = this.baseUrl + "/api/products?";
+        if (search === null)
+            throw new globalThis.Error("The parameter 'search' cannot be null.");
+        else if (search !== undefined)
+            url_ += "Search=" + encodeURIComponent("" + search) + "&";
+        if (brandId === null)
+            throw new globalThis.Error("The parameter 'brandId' cannot be null.");
+        else if (brandId !== undefined)
+            url_ += "BrandId=" + encodeURIComponent("" + brandId) + "&";
+        if (categoryId === null)
+            throw new globalThis.Error("The parameter 'categoryId' cannot be null.");
+        else if (categoryId !== undefined)
+            url_ += "CategoryId=" + encodeURIComponent("" + categoryId) + "&";
+        if (minPrice === null)
+            throw new globalThis.Error("The parameter 'minPrice' cannot be null.");
+        else if (minPrice !== undefined)
+            url_ += "MinPrice=" + encodeURIComponent("" + minPrice) + "&";
+        if (maxPrice === null)
+            throw new globalThis.Error("The parameter 'maxPrice' cannot be null.");
+        else if (maxPrice !== undefined)
+            url_ += "MaxPrice=" + encodeURIComponent("" + maxPrice) + "&";
+        if (pageNumber === undefined || pageNumber === null)
+            throw new globalThis.Error("The parameter 'pageNumber' must be defined and cannot be null.");
+        else
+            url_ += "PageNumber=" + encodeURIComponent("" + pageNumber) + "&";
+        if (pageSize === undefined || pageSize === null)
+            throw new globalThis.Error("The parameter 'pageSize' must be defined and cannot be null.");
+        else
+            url_ += "PageSize=" + encodeURIComponent("" + pageSize) + "&";
+        if (sortBy === null)
+            throw new globalThis.Error("The parameter 'sortBy' cannot be null.");
+        else if (sortBy !== undefined)
+            url_ += "SortBy=" + encodeURIComponent("" + sortBy) + "&";
+        if (sortDirection === null)
+            throw new globalThis.Error("The parameter 'sortDirection' cannot be null.");
+        else if (sortDirection !== undefined)
+            url_ += "SortDirection=" + encodeURIComponent("" + sortDirection) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -1470,21 +1528,14 @@ export class ProductsClient {
         });
     }
 
-    protected processGetProducts(response: Response): Promise<ProductDto[]> {
+    protected processGetProducts(response: Response): Promise<PaginatedListOfProductListItemDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(ProductDto.fromJS(item));
-            }
-            else {
-                result200 = null as any;
-            }
+            result200 = PaginatedListOfProductListItemDto.fromJS(resultData200);
             return result200;
             });
         } else if (status === 400) {
@@ -1496,7 +1547,7 @@ export class ProductsClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<ProductDto[]>(null as any);
+        return Promise.resolve<PaginatedListOfProductListItemDto>(null as any);
     }
 
     /**
@@ -1558,7 +1609,7 @@ export class ProductsClient {
      * Get Product by Id
      * @return OK
      */
-    getProductById(id: number): Promise<ProductDto> {
+    getProductById(id: number): Promise<ProductDetailDto> {
         let url_ = this.baseUrl + "/api/products/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
@@ -1577,14 +1628,14 @@ export class ProductsClient {
         });
     }
 
-    protected processGetProductById(response: Response): Promise<ProductDto> {
+    protected processGetProductById(response: Response): Promise<ProductDetailDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = ProductDto.fromJS(resultData200);
+            result200 = ProductDetailDto.fromJS(resultData200);
             return result200;
             });
         } else if (status === 400) {
@@ -1600,7 +1651,7 @@ export class ProductsClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<ProductDto>(null as any);
+        return Promise.resolve<ProductDetailDto>(null as any);
     }
 
     /**
@@ -1721,11 +1772,12 @@ export class OrdersClient {
     }
 
     /**
-     * Checkout selected Cart Items
+     * Place order
+     * @param idempotency_Key (optional) 
      * @return Created
      */
-    checkoutOrder(body: CheckoutOrderRequest): Promise<number> {
-        let url_ = this.baseUrl + "/api/orders/checkout";
+    placeOrder(idempotency_Key: string | undefined, body: PlaceOrderRequest): Promise<OrderCreated> {
+        let url_ = this.baseUrl + "/api/orders/placeorder";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -1734,37 +1786,45 @@ export class OrdersClient {
             body: content_,
             method: "POST",
             headers: {
+                "Idempotency-Key": idempotency_Key !== undefined && idempotency_Key !== null ? "" + idempotency_Key : "",
                 "Content-Type": "application/json",
                 "Accept": "application/json"
             }
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCheckoutOrder(_response);
+            return this.processPlaceOrder(_response);
         });
     }
 
-    protected processCheckoutOrder(response: Response): Promise<number> {
+    protected processPlaceOrder(response: Response): Promise<OrderCreated> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 201) {
             return response.text().then((_responseText) => {
             let result201: any = null;
             let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-                result201 = resultData201 !== undefined ? resultData201 : null as any;
-    
+            result201 = OrderCreated.fromJS(resultData201);
             return result201;
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
             return throwException("Bad Request", status, _responseText, _headers);
             });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<number>(null as any);
+        return Promise.resolve<OrderCreated>(null as any);
     }
 }
 
@@ -2015,8 +2075,11 @@ export class InventoriesClient {
      * Initialize Inventory
      * @return No Content
      */
-    initializeInventory(body: InventoryStockRequest): Promise<void> {
-        let url_ = this.baseUrl + "/api/inventories/initialize";
+    initializeInventory(branchId: number, body: InventoryStockRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/inventories/{branchId}/initialize";
+        if (branchId === undefined || branchId === null)
+            throw new globalThis.Error("The parameter 'branchId' must be defined.");
+        url_ = url_.replace("{branchId}", encodeURIComponent("" + branchId));
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -2065,8 +2128,11 @@ export class InventoriesClient {
      * Increase Inventory Stock
      * @return No Content
      */
-    increaseInventoryStock(body: InventoryStockRequest): Promise<void> {
-        let url_ = this.baseUrl + "/api/inventories/increase";
+    increaseInventoryStock(branchId: number, body: InventoryStockRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/inventories/{branchId}/increase";
+        if (branchId === undefined || branchId === null)
+            throw new globalThis.Error("The parameter 'branchId' must be defined.");
+        url_ = url_.replace("{branchId}", encodeURIComponent("" + branchId));
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -2115,8 +2181,11 @@ export class InventoriesClient {
      * Decrease Inventory Stock
      * @return No Content
      */
-    decreaseInventoryStock(body: InventoryStockRequest): Promise<void> {
-        let url_ = this.baseUrl + "/api/inventories/decrease";
+    decreaseInventoryStock(branchId: number, body: InventoryStockRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/inventories/{branchId}/decrease";
+        if (branchId === undefined || branchId === null)
+            throw new globalThis.Error("The parameter 'branchId' must be defined.");
+        url_ = url_.replace("{branchId}", encodeURIComponent("" + branchId));
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -2165,8 +2234,11 @@ export class InventoriesClient {
      * Adjust Inventory Stock
      * @return No Content
      */
-    adjustInventoryStock(body: InventoryStockRequest): Promise<void> {
-        let url_ = this.baseUrl + "/api/inventories/adjust";
+    adjustInventoryStock(branchId: number, body: InventoryStockRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/inventories/{branchId}/adjust";
+        if (branchId === undefined || branchId === null)
+            throw new globalThis.Error("The parameter 'branchId' must be defined.");
+        url_ = url_.replace("{branchId}", encodeURIComponent("" + branchId));
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -2215,8 +2287,14 @@ export class InventoriesClient {
      * Transfer Inventory Stock
      * @return No Content
      */
-    transferInventoryStock(body: TransferInventoryStockRequest): Promise<void> {
-        let url_ = this.baseUrl + "/api/inventories/transfer";
+    transferInventoryStock(sourceBranchId: number, destinationBranchId: number, body: TransferInventoryStockRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/inventories/{sourceBranchId}/transfer/{destinationBranchId}";
+        if (sourceBranchId === undefined || sourceBranchId === null)
+            throw new globalThis.Error("The parameter 'sourceBranchId' must be defined.");
+        url_ = url_.replace("{sourceBranchId}", encodeURIComponent("" + sourceBranchId));
+        if (destinationBranchId === undefined || destinationBranchId === null)
+            throw new globalThis.Error("The parameter 'destinationBranchId' must be defined.");
+        url_ = url_.replace("{destinationBranchId}", encodeURIComponent("" + destinationBranchId));
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -2265,8 +2343,11 @@ export class InventoriesClient {
      * Reserve Inventory Stock
      * @return No Content
      */
-    reserveInventoryStock(body: InventoryReservationRequest): Promise<void> {
-        let url_ = this.baseUrl + "/api/inventories/reserve";
+    reserveInventoryStock(branchId: number, body: InventoryReservationRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/inventories/{branchId}/reserve";
+        if (branchId === undefined || branchId === null)
+            throw new globalThis.Error("The parameter 'branchId' must be defined.");
+        url_ = url_.replace("{branchId}", encodeURIComponent("" + branchId));
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -2315,8 +2396,11 @@ export class InventoriesClient {
      * Release Reserved Inventory
      * @return No Content
      */
-    releaseReservedInventory(body: InventoryReservationRequest): Promise<void> {
-        let url_ = this.baseUrl + "/api/inventories/release-reservation";
+    releaseReservedInventory(branchId: number, body: InventoryReservationRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/inventories/{branchId}/release-reservation";
+        if (branchId === undefined || branchId === null)
+            throw new globalThis.Error("The parameter 'branchId' must be defined.");
+        url_ = url_.replace("{branchId}", encodeURIComponent("" + branchId));
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -2365,8 +2449,11 @@ export class InventoriesClient {
      * Commit Reserved Inventory
      * @return No Content
      */
-    commitReservedInventory(body: InventoryReservationRequest): Promise<void> {
-        let url_ = this.baseUrl + "/api/inventories/commit-reservation";
+    commitReservedInventory(branchId: number, body: InventoryReservationRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/inventories/{branchId}/commit-reservation";
+        if (branchId === undefined || branchId === null)
+            throw new globalThis.Error("The parameter 'branchId' must be defined.");
+        url_ = url_.replace("{branchId}", encodeURIComponent("" + branchId));
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -2415,8 +2502,11 @@ export class InventoriesClient {
      * Return Inventory Stock
      * @return No Content
      */
-    returnInventoryStock(body: ReturnInventoryStockRequest): Promise<void> {
-        let url_ = this.baseUrl + "/api/inventories/return";
+    returnInventoryStock(branchId: number, body: ReturnInventoryStockRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/inventories/{branchId}/return";
+        if (branchId === undefined || branchId === null)
+            throw new globalThis.Error("The parameter 'branchId' must be defined.");
+        url_ = url_.replace("{branchId}", encodeURIComponent("" + branchId));
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -3150,74 +3240,6 @@ export interface ICategoryDto {
     [key: string]: any;
 }
 
-export class CheckoutOrderRequest implements ICheckoutOrderRequest {
-    cartItemIds?: number[];
-    shippingAddressId?: number;
-    paymentMethod?: number;
-    note?: string | undefined;
-
-    [key: string]: any;
-
-    constructor(data?: ICheckoutOrderRequest) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            if (Array.isArray(_data["cartItemIds"])) {
-                this.cartItemIds = [] as any;
-                for (let item of _data["cartItemIds"])
-                    this.cartItemIds!.push(item);
-            }
-            this.shippingAddressId = _data["shippingAddressId"];
-            this.paymentMethod = _data["paymentMethod"];
-            this.note = _data["note"];
-        }
-    }
-
-    static fromJS(data: any): CheckoutOrderRequest {
-        data = typeof data === 'object' ? data : {};
-        let result = new CheckoutOrderRequest();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        if (Array.isArray(this.cartItemIds)) {
-            data["cartItemIds"] = [];
-            for (let item of this.cartItemIds)
-                data["cartItemIds"].push(item);
-        }
-        data["shippingAddressId"] = this.shippingAddressId;
-        data["paymentMethod"] = this.paymentMethod;
-        data["note"] = this.note;
-        return data;
-    }
-}
-
-export interface ICheckoutOrderRequest {
-    cartItemIds?: number[];
-    shippingAddressId?: number;
-    paymentMethod?: number;
-    note?: string | undefined;
-
-    [key: string]: any;
-}
-
 export class CreateCategoryRequest implements ICreateCategoryRequest {
     name?: string;
     description?: string | undefined;
@@ -3444,6 +3466,9 @@ export class CreateVoucherRequest implements ICreateVoucherRequest {
     validFrom?: Date;
     validUntil?: Date;
     voucherType?: number;
+    productId?: number | undefined;
+    categoryId?: number | undefined;
+    brandId?: number | undefined;
     display?: number;
     quantityPerUser?: number;
 
@@ -3473,6 +3498,9 @@ export class CreateVoucherRequest implements ICreateVoucherRequest {
             this.validFrom = _data["validFrom"] ? new Date(_data["validFrom"].toString()) : undefined as any;
             this.validUntil = _data["validUntil"] ? new Date(_data["validUntil"].toString()) : undefined as any;
             this.voucherType = _data["voucherType"];
+            this.productId = _data["productId"];
+            this.categoryId = _data["categoryId"];
+            this.brandId = _data["brandId"];
             this.display = _data["display"];
             this.quantityPerUser = _data["quantityPerUser"];
         }
@@ -3500,6 +3528,9 @@ export class CreateVoucherRequest implements ICreateVoucherRequest {
         data["validFrom"] = this.validFrom ? this.validFrom.toISOString() : undefined as any;
         data["validUntil"] = this.validUntil ? this.validUntil.toISOString() : undefined as any;
         data["voucherType"] = this.voucherType;
+        data["productId"] = this.productId;
+        data["categoryId"] = this.categoryId;
+        data["brandId"] = this.brandId;
         data["display"] = this.display;
         data["quantityPerUser"] = this.quantityPerUser;
         return data;
@@ -3516,6 +3547,9 @@ export interface ICreateVoucherRequest {
     validFrom?: Date;
     validUntil?: Date;
     voucherType?: number;
+    productId?: number | undefined;
+    categoryId?: number | undefined;
+    brandId?: number | undefined;
     display?: number;
     quantityPerUser?: number;
 
@@ -3646,66 +3680,6 @@ export interface IHttpValidationProblemDetails {
     detail?: string | undefined;
     instance?: string | undefined;
     errors?: { [key: string]: string[]; };
-
-    [key: string]: any;
-}
-
-export class ImageDto implements IImageDto {
-    uploadedFileId?: number;
-    url?: string;
-    isMain?: boolean;
-    displayOrder?: number;
-
-    [key: string]: any;
-
-    constructor(data?: IImageDto) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.uploadedFileId = _data["uploadedFileId"];
-            this.url = _data["url"];
-            this.isMain = _data["isMain"];
-            this.displayOrder = _data["displayOrder"];
-        }
-    }
-
-    static fromJS(data: any): ImageDto {
-        data = typeof data === 'object' ? data : {};
-        let result = new ImageDto();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["uploadedFileId"] = this.uploadedFileId;
-        data["url"] = this.url;
-        data["isMain"] = this.isMain;
-        data["displayOrder"] = this.displayOrder;
-        return data;
-    }
-}
-
-export interface IImageDto {
-    uploadedFileId?: number;
-    url?: string;
-    isMain?: boolean;
-    displayOrder?: number;
 
     [key: string]: any;
 }
@@ -3911,7 +3885,6 @@ export interface IInventoryDto {
 }
 
 export class InventoryReservationRequest implements IInventoryReservationRequest {
-    branchId?: number;
     productVariantId?: number;
     orderId?: number;
     quantity?: number;
@@ -3934,7 +3907,6 @@ export class InventoryReservationRequest implements IInventoryReservationRequest
                 if (_data.hasOwnProperty(property))
                     this[property] = _data[property];
             }
-            this.branchId = _data["branchId"];
             this.productVariantId = _data["productVariantId"];
             this.orderId = _data["orderId"];
             this.quantity = _data["quantity"];
@@ -3955,7 +3927,6 @@ export class InventoryReservationRequest implements IInventoryReservationRequest
             if (this.hasOwnProperty(property))
                 data[property] = this[property];
         }
-        data["branchId"] = this.branchId;
         data["productVariantId"] = this.productVariantId;
         data["orderId"] = this.orderId;
         data["quantity"] = this.quantity;
@@ -3965,7 +3936,6 @@ export class InventoryReservationRequest implements IInventoryReservationRequest
 }
 
 export interface IInventoryReservationRequest {
-    branchId?: number;
     productVariantId?: number;
     orderId?: number;
     quantity?: number;
@@ -3975,7 +3945,6 @@ export interface IInventoryReservationRequest {
 }
 
 export class InventoryStockRequest implements IInventoryStockRequest {
-    branchId?: number;
     productVariantId?: number;
     quantity?: number;
     note?: string | undefined;
@@ -3997,7 +3966,6 @@ export class InventoryStockRequest implements IInventoryStockRequest {
                 if (_data.hasOwnProperty(property))
                     this[property] = _data[property];
             }
-            this.branchId = _data["branchId"];
             this.productVariantId = _data["productVariantId"];
             this.quantity = _data["quantity"];
             this.note = _data["note"];
@@ -4017,7 +3985,6 @@ export class InventoryStockRequest implements IInventoryStockRequest {
             if (this.hasOwnProperty(property))
                 data[property] = this[property];
         }
-        data["branchId"] = this.branchId;
         data["productVariantId"] = this.productVariantId;
         data["quantity"] = this.quantity;
         data["note"] = this.note;
@@ -4026,7 +3993,6 @@ export class InventoryStockRequest implements IInventoryStockRequest {
 }
 
 export interface IInventoryStockRequest {
-    branchId?: number;
     productVariantId?: number;
     quantity?: number;
     note?: string | undefined;
@@ -4334,13 +4300,15 @@ export interface ILoginRequest {
     [key: string]: any;
 }
 
-export class LookupDto implements ILookupDto {
-    id?: number;
-    name?: string | undefined;
+export class OrderCreated implements IOrderCreated {
+    orderId?: number;
+    status?: number;
+    branchId?: number;
+    branchName?: string;
 
     [key: string]: any;
 
-    constructor(data?: ILookupDto) {
+    constructor(data?: IOrderCreated) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -4355,14 +4323,16 @@ export class LookupDto implements ILookupDto {
                 if (_data.hasOwnProperty(property))
                     this[property] = _data[property];
             }
-            this.id = _data["id"];
-            this.name = _data["name"];
+            this.orderId = _data["orderId"];
+            this.status = _data["status"];
+            this.branchId = _data["branchId"];
+            this.branchName = _data["branchName"];
         }
     }
 
-    static fromJS(data: any): LookupDto {
+    static fromJS(data: any): OrderCreated {
         data = typeof data === 'object' ? data : {};
-        let result = new LookupDto();
+        let result = new OrderCreated();
         result.init(data);
         return result;
     }
@@ -4373,15 +4343,19 @@ export class LookupDto implements ILookupDto {
             if (this.hasOwnProperty(property))
                 data[property] = this[property];
         }
-        data["id"] = this.id;
-        data["name"] = this.name;
+        data["orderId"] = this.orderId;
+        data["status"] = this.status;
+        data["branchId"] = this.branchId;
+        data["branchName"] = this.branchName;
         return data;
     }
 }
 
-export interface ILookupDto {
-    id?: number;
-    name?: string | undefined;
+export interface IOrderCreated {
+    orderId?: number;
+    status?: number;
+    branchId?: number;
+    branchName?: string;
 
     [key: string]: any;
 }
@@ -4470,19 +4444,238 @@ export interface IOrderVoucherUsageDto {
     [key: string]: any;
 }
 
-export class ProductDto implements IProductDto {
-    id?: number;
-    name?: string;
-    description?: string;
-    category?: LookupDto;
-    brand?: LookupDto;
-    status?: string;
-    variants?: ProductVariantDto[];
-    imageUrls?: ImageDto[];
+export class PaginatedListOfProductListItemDto implements IPaginatedListOfProductListItemDto {
+    items!: ProductListItemDto[];
+    pageNumber!: number;
+    totalPages?: number;
+    totalCount?: number;
+    hasPreviousPage?: boolean;
+    hasNextPage?: boolean;
 
     [key: string]: any;
 
-    constructor(data?: IProductDto) {
+    constructor(data?: IPaginatedListOfProductListItemDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.items = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (Array.isArray(_data["items"])) {
+                this.items = [] as any;
+                for (let item of _data["items"])
+                    this.items!.push(ProductListItemDto.fromJS(item));
+            }
+            this.pageNumber = _data["pageNumber"];
+            this.totalPages = _data["totalPages"];
+            this.totalCount = _data["totalCount"];
+            this.hasPreviousPage = _data["hasPreviousPage"];
+            this.hasNextPage = _data["hasNextPage"];
+        }
+    }
+
+    static fromJS(data: any): PaginatedListOfProductListItemDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PaginatedListOfProductListItemDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        if (Array.isArray(this.items)) {
+            data["items"] = [];
+            for (let item of this.items)
+                data["items"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["pageNumber"] = this.pageNumber;
+        data["totalPages"] = this.totalPages;
+        data["totalCount"] = this.totalCount;
+        data["hasPreviousPage"] = this.hasPreviousPage;
+        data["hasNextPage"] = this.hasNextPage;
+        return data;
+    }
+}
+
+export interface IPaginatedListOfProductListItemDto {
+    items: ProductListItemDto[];
+    pageNumber: number;
+    totalPages?: number;
+    totalCount?: number;
+    hasPreviousPage?: boolean;
+    hasNextPage?: boolean;
+
+    [key: string]: any;
+}
+
+export class PlaceOrderRequest implements IPlaceOrderRequest {
+    shippingAddress?: PlaceOrderShippingAddressRequest;
+    voucherCode?: string | undefined;
+    paymentMethod?: number;
+    note?: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IPlaceOrderRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.shippingAddress = _data["shippingAddress"] ? PlaceOrderShippingAddressRequest.fromJS(_data["shippingAddress"]) : undefined as any;
+            this.voucherCode = _data["voucherCode"];
+            this.paymentMethod = _data["paymentMethod"];
+            this.note = _data["note"];
+        }
+    }
+
+    static fromJS(data: any): PlaceOrderRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new PlaceOrderRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["shippingAddress"] = this.shippingAddress ? this.shippingAddress.toJSON() : undefined as any;
+        data["voucherCode"] = this.voucherCode;
+        data["paymentMethod"] = this.paymentMethod;
+        data["note"] = this.note;
+        return data;
+    }
+}
+
+export interface IPlaceOrderRequest {
+    shippingAddress?: PlaceOrderShippingAddressRequest;
+    voucherCode?: string | undefined;
+    paymentMethod?: number;
+    note?: string | undefined;
+
+    [key: string]: any;
+}
+
+export class PlaceOrderShippingAddressRequest implements IPlaceOrderShippingAddressRequest {
+    customerName?: string;
+    customerEmail?: string;
+    customerPhone?: string;
+    line1?: string;
+    ward?: string;
+    district?: string;
+    province?: string;
+    latitude?: number;
+    longitude?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IPlaceOrderShippingAddressRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.customerName = _data["customerName"];
+            this.customerEmail = _data["customerEmail"];
+            this.customerPhone = _data["customerPhone"];
+            this.line1 = _data["line1"];
+            this.ward = _data["ward"];
+            this.district = _data["district"];
+            this.province = _data["province"];
+            this.latitude = _data["latitude"];
+            this.longitude = _data["longitude"];
+        }
+    }
+
+    static fromJS(data: any): PlaceOrderShippingAddressRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new PlaceOrderShippingAddressRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["customerName"] = this.customerName;
+        data["customerEmail"] = this.customerEmail;
+        data["customerPhone"] = this.customerPhone;
+        data["line1"] = this.line1;
+        data["ward"] = this.ward;
+        data["district"] = this.district;
+        data["province"] = this.province;
+        data["latitude"] = this.latitude;
+        data["longitude"] = this.longitude;
+        return data;
+    }
+}
+
+export interface IPlaceOrderShippingAddressRequest {
+    customerName?: string;
+    customerEmail?: string;
+    customerPhone?: string;
+    line1?: string;
+    ward?: string;
+    district?: string;
+    province?: string;
+    latitude?: number;
+    longitude?: number;
+
+    [key: string]: any;
+}
+
+export class ProductDetailDto implements IProductDetailDto {
+    id?: number;
+    name?: string;
+    description?: string | undefined;
+    brandName?: string;
+    categoryName?: string;
+    variantOptions?: ProductVariantOptionDto[];
+    variants?: ProductVariantDto[];
+    images?: ProductImageDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IProductDetailDto) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -4500,25 +4693,29 @@ export class ProductDto implements IProductDto {
             this.id = _data["id"];
             this.name = _data["name"];
             this.description = _data["description"];
-            this.category = _data["category"] ? LookupDto.fromJS(_data["category"]) : undefined as any;
-            this.brand = _data["brand"] ? LookupDto.fromJS(_data["brand"]) : undefined as any;
-            this.status = _data["status"];
+            this.brandName = _data["brandName"];
+            this.categoryName = _data["categoryName"];
+            if (Array.isArray(_data["variantOptions"])) {
+                this.variantOptions = [] as any;
+                for (let item of _data["variantOptions"])
+                    this.variantOptions!.push(ProductVariantOptionDto.fromJS(item));
+            }
             if (Array.isArray(_data["variants"])) {
                 this.variants = [] as any;
                 for (let item of _data["variants"])
                     this.variants!.push(ProductVariantDto.fromJS(item));
             }
-            if (Array.isArray(_data["imageUrls"])) {
-                this.imageUrls = [] as any;
-                for (let item of _data["imageUrls"])
-                    this.imageUrls!.push(ImageDto.fromJS(item));
+            if (Array.isArray(_data["images"])) {
+                this.images = [] as any;
+                for (let item of _data["images"])
+                    this.images!.push(ProductImageDto.fromJS(item));
             }
         }
     }
 
-    static fromJS(data: any): ProductDto {
+    static fromJS(data: any): ProductDetailDto {
         data = typeof data === 'object' ? data : {};
-        let result = new ProductDto();
+        let result = new ProductDetailDto();
         result.init(data);
         return result;
     }
@@ -4532,44 +4729,48 @@ export class ProductDto implements IProductDto {
         data["id"] = this.id;
         data["name"] = this.name;
         data["description"] = this.description;
-        data["category"] = this.category ? this.category.toJSON() : undefined as any;
-        data["brand"] = this.brand ? this.brand.toJSON() : undefined as any;
-        data["status"] = this.status;
+        data["brandName"] = this.brandName;
+        data["categoryName"] = this.categoryName;
+        if (Array.isArray(this.variantOptions)) {
+            data["variantOptions"] = [];
+            for (let item of this.variantOptions)
+                data["variantOptions"].push(item ? item.toJSON() : undefined as any);
+        }
         if (Array.isArray(this.variants)) {
             data["variants"] = [];
             for (let item of this.variants)
                 data["variants"].push(item ? item.toJSON() : undefined as any);
         }
-        if (Array.isArray(this.imageUrls)) {
-            data["imageUrls"] = [];
-            for (let item of this.imageUrls)
-                data["imageUrls"].push(item ? item.toJSON() : undefined as any);
+        if (Array.isArray(this.images)) {
+            data["images"] = [];
+            for (let item of this.images)
+                data["images"].push(item ? item.toJSON() : undefined as any);
         }
         return data;
     }
 }
 
-export interface IProductDto {
+export interface IProductDetailDto {
     id?: number;
     name?: string;
-    description?: string;
-    category?: LookupDto;
-    brand?: LookupDto;
-    status?: string;
+    description?: string | undefined;
+    brandName?: string;
+    categoryName?: string;
+    variantOptions?: ProductVariantOptionDto[];
     variants?: ProductVariantDto[];
-    imageUrls?: ImageDto[];
+    images?: ProductImageDto[];
 
     [key: string]: any;
 }
 
-export class ProductVariantAttributeValueDto implements IProductVariantAttributeValueDto {
+export class ProductImageDto implements IProductImageDto {
     id?: number;
-    value?: string;
-    hexValue?: string | undefined;
+    imageUrl?: string;
+    isMain?: boolean;
 
     [key: string]: any;
 
-    constructor(data?: IProductVariantAttributeValueDto) {
+    constructor(data?: IProductImageDto) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -4585,14 +4786,14 @@ export class ProductVariantAttributeValueDto implements IProductVariantAttribute
                     this[property] = _data[property];
             }
             this.id = _data["id"];
-            this.value = _data["value"];
-            this.hexValue = _data["hexValue"];
+            this.imageUrl = _data["imageUrl"];
+            this.isMain = _data["isMain"];
         }
     }
 
-    static fromJS(data: any): ProductVariantAttributeValueDto {
+    static fromJS(data: any): ProductImageDto {
         data = typeof data === 'object' ? data : {};
-        let result = new ProductVariantAttributeValueDto();
+        let result = new ProductImageDto();
         result.init(data);
         return result;
     }
@@ -4604,29 +4805,131 @@ export class ProductVariantAttributeValueDto implements IProductVariantAttribute
                 data[property] = this[property];
         }
         data["id"] = this.id;
-        data["value"] = this.value;
-        data["hexValue"] = this.hexValue;
+        data["imageUrl"] = this.imageUrl;
+        data["isMain"] = this.isMain;
         return data;
     }
 }
 
-export interface IProductVariantAttributeValueDto {
+export interface IProductImageDto {
     id?: number;
-    value?: string;
-    hexValue?: string | undefined;
+    imageUrl?: string;
+    isMain?: boolean;
+
+    [key: string]: any;
+}
+
+export class ProductListItemDto implements IProductListItemDto {
+    id?: number;
+    name?: string;
+    description?: string | undefined;
+    brandName?: string;
+    categoryName?: string;
+    minOriginalPrice?: number;
+    maxOriginalPrice?: number;
+    maxDiscountPercentage?: number;
+    minFinalPrice?: number;
+    maxFinalPrice?: number;
+    hasPriceRange?: boolean;
+    hasDiscount?: boolean;
+    thumbnailImageUrl?: string | undefined;
+    variantCount?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IProductListItemDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.brandName = _data["brandName"];
+            this.categoryName = _data["categoryName"];
+            this.minOriginalPrice = _data["minOriginalPrice"];
+            this.maxOriginalPrice = _data["maxOriginalPrice"];
+            this.maxDiscountPercentage = _data["maxDiscountPercentage"];
+            this.minFinalPrice = _data["minFinalPrice"];
+            this.maxFinalPrice = _data["maxFinalPrice"];
+            this.hasPriceRange = _data["hasPriceRange"];
+            this.hasDiscount = _data["hasDiscount"];
+            this.thumbnailImageUrl = _data["thumbnailImageUrl"];
+            this.variantCount = _data["variantCount"];
+        }
+    }
+
+    static fromJS(data: any): ProductListItemDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ProductListItemDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["brandName"] = this.brandName;
+        data["categoryName"] = this.categoryName;
+        data["minOriginalPrice"] = this.minOriginalPrice;
+        data["maxOriginalPrice"] = this.maxOriginalPrice;
+        data["maxDiscountPercentage"] = this.maxDiscountPercentage;
+        data["minFinalPrice"] = this.minFinalPrice;
+        data["maxFinalPrice"] = this.maxFinalPrice;
+        data["hasPriceRange"] = this.hasPriceRange;
+        data["hasDiscount"] = this.hasDiscount;
+        data["thumbnailImageUrl"] = this.thumbnailImageUrl;
+        data["variantCount"] = this.variantCount;
+        return data;
+    }
+}
+
+export interface IProductListItemDto {
+    id?: number;
+    name?: string;
+    description?: string | undefined;
+    brandName?: string;
+    categoryName?: string;
+    minOriginalPrice?: number;
+    maxOriginalPrice?: number;
+    maxDiscountPercentage?: number;
+    minFinalPrice?: number;
+    maxFinalPrice?: number;
+    hasPriceRange?: boolean;
+    hasDiscount?: boolean;
+    thumbnailImageUrl?: string | undefined;
+    variantCount?: number;
 
     [key: string]: any;
 }
 
 export class ProductVariantDto implements IProductVariantDto {
     id?: number;
-    displayName?: string;
+    sku?: string;
     originalPrice?: number;
     discountPercentage?: number;
-    stockQuantity?: number;
-    sellingPrice?: number;
-    attributeValues?: ProductVariantAttributeValueDto[];
-    imageUrls?: ImageDto[];
+    finalPrice?: number;
+    quantity?: number;
+    reservedQuantity?: number;
+    availableQuantity?: number;
+    attributeValueIds?: number[];
+    attributeValues?: VariantAttributeValueDto[];
 
     [key: string]: any;
 
@@ -4646,20 +4949,22 @@ export class ProductVariantDto implements IProductVariantDto {
                     this[property] = _data[property];
             }
             this.id = _data["id"];
-            this.displayName = _data["displayName"];
+            this.sku = _data["sku"];
             this.originalPrice = _data["originalPrice"];
             this.discountPercentage = _data["discountPercentage"];
-            this.stockQuantity = _data["stockQuantity"];
-            this.sellingPrice = _data["sellingPrice"];
+            this.finalPrice = _data["finalPrice"];
+            this.quantity = _data["quantity"];
+            this.reservedQuantity = _data["reservedQuantity"];
+            this.availableQuantity = _data["availableQuantity"];
+            if (Array.isArray(_data["attributeValueIds"])) {
+                this.attributeValueIds = [] as any;
+                for (let item of _data["attributeValueIds"])
+                    this.attributeValueIds!.push(item);
+            }
             if (Array.isArray(_data["attributeValues"])) {
                 this.attributeValues = [] as any;
                 for (let item of _data["attributeValues"])
-                    this.attributeValues!.push(ProductVariantAttributeValueDto.fromJS(item));
-            }
-            if (Array.isArray(_data["imageUrls"])) {
-                this.imageUrls = [] as any;
-                for (let item of _data["imageUrls"])
-                    this.imageUrls!.push(ImageDto.fromJS(item));
+                    this.attributeValues!.push(VariantAttributeValueDto.fromJS(item));
             }
         }
     }
@@ -4678,20 +4983,22 @@ export class ProductVariantDto implements IProductVariantDto {
                 data[property] = this[property];
         }
         data["id"] = this.id;
-        data["displayName"] = this.displayName;
+        data["sku"] = this.sku;
         data["originalPrice"] = this.originalPrice;
         data["discountPercentage"] = this.discountPercentage;
-        data["stockQuantity"] = this.stockQuantity;
-        data["sellingPrice"] = this.sellingPrice;
+        data["finalPrice"] = this.finalPrice;
+        data["quantity"] = this.quantity;
+        data["reservedQuantity"] = this.reservedQuantity;
+        data["availableQuantity"] = this.availableQuantity;
+        if (Array.isArray(this.attributeValueIds)) {
+            data["attributeValueIds"] = [];
+            for (let item of this.attributeValueIds)
+                data["attributeValueIds"].push(item);
+        }
         if (Array.isArray(this.attributeValues)) {
             data["attributeValues"] = [];
             for (let item of this.attributeValues)
                 data["attributeValues"].push(item ? item.toJSON() : undefined as any);
-        }
-        if (Array.isArray(this.imageUrls)) {
-            data["imageUrls"] = [];
-            for (let item of this.imageUrls)
-                data["imageUrls"].push(item ? item.toJSON() : undefined as any);
         }
         return data;
     }
@@ -4699,13 +5006,131 @@ export class ProductVariantDto implements IProductVariantDto {
 
 export interface IProductVariantDto {
     id?: number;
-    displayName?: string;
+    sku?: string;
     originalPrice?: number;
     discountPercentage?: number;
-    stockQuantity?: number;
-    sellingPrice?: number;
-    attributeValues?: ProductVariantAttributeValueDto[];
-    imageUrls?: ImageDto[];
+    finalPrice?: number;
+    quantity?: number;
+    reservedQuantity?: number;
+    availableQuantity?: number;
+    attributeValueIds?: number[];
+    attributeValues?: VariantAttributeValueDto[];
+
+    [key: string]: any;
+}
+
+export class ProductVariantOptionDto implements IProductVariantOptionDto {
+    attributeId?: number;
+    attributeName?: string;
+    values?: ProductVariantOptionValueDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IProductVariantOptionDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.attributeId = _data["attributeId"];
+            this.attributeName = _data["attributeName"];
+            if (Array.isArray(_data["values"])) {
+                this.values = [] as any;
+                for (let item of _data["values"])
+                    this.values!.push(ProductVariantOptionValueDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): ProductVariantOptionDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ProductVariantOptionDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["attributeId"] = this.attributeId;
+        data["attributeName"] = this.attributeName;
+        if (Array.isArray(this.values)) {
+            data["values"] = [];
+            for (let item of this.values)
+                data["values"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IProductVariantOptionDto {
+    attributeId?: number;
+    attributeName?: string;
+    values?: ProductVariantOptionValueDto[];
+
+    [key: string]: any;
+}
+
+export class ProductVariantOptionValueDto implements IProductVariantOptionValueDto {
+    attributeValueId?: number;
+    value?: string;
+
+    [key: string]: any;
+
+    constructor(data?: IProductVariantOptionValueDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.attributeValueId = _data["attributeValueId"];
+            this.value = _data["value"];
+        }
+    }
+
+    static fromJS(data: any): ProductVariantOptionValueDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ProductVariantOptionValueDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["attributeValueId"] = this.attributeValueId;
+        data["value"] = this.value;
+        return data;
+    }
+}
+
+export interface IProductVariantOptionValueDto {
+    attributeValueId?: number;
+    value?: string;
 
     [key: string]: any;
 }
@@ -4758,16 +5183,16 @@ export interface IRefreshRequest {
     [key: string]: any;
 }
 
-export class RegisterCustomerCommand implements IRegisterCustomerCommand {
-    email?: string;
-    password?: string;
-    firstName?: string;
-    lastName?: string;
-    phoneNumber?: string;
+export class RegisterCustomerRequest implements IRegisterCustomerRequest {
+    email!: string;
+    password!: string;
+    firstName!: string;
+    lastName!: string;
+    phoneNumber!: string;
 
     [key: string]: any;
 
-    constructor(data?: IRegisterCustomerCommand) {
+    constructor(data?: IRegisterCustomerRequest) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -4790,9 +5215,9 @@ export class RegisterCustomerCommand implements IRegisterCustomerCommand {
         }
     }
 
-    static fromJS(data: any): RegisterCustomerCommand {
+    static fromJS(data: any): RegisterCustomerRequest {
         data = typeof data === 'object' ? data : {};
-        let result = new RegisterCustomerCommand();
+        let result = new RegisterCustomerRequest();
         result.init(data);
         return result;
     }
@@ -4812,12 +5237,12 @@ export class RegisterCustomerCommand implements IRegisterCustomerCommand {
     }
 }
 
-export interface IRegisterCustomerCommand {
-    email?: string;
-    password?: string;
-    firstName?: string;
-    lastName?: string;
-    phoneNumber?: string;
+export interface IRegisterCustomerRequest {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
 
     [key: string]: any;
 }
@@ -4979,7 +5404,6 @@ export interface IResetPasswordRequest {
 }
 
 export class ReturnInventoryStockRequest implements IReturnInventoryStockRequest {
-    branchId?: number;
     productVariantId?: number;
     orderId?: number | undefined;
     quantity?: number;
@@ -5002,7 +5426,6 @@ export class ReturnInventoryStockRequest implements IReturnInventoryStockRequest
                 if (_data.hasOwnProperty(property))
                     this[property] = _data[property];
             }
-            this.branchId = _data["branchId"];
             this.productVariantId = _data["productVariantId"];
             this.orderId = _data["orderId"];
             this.quantity = _data["quantity"];
@@ -5023,7 +5446,6 @@ export class ReturnInventoryStockRequest implements IReturnInventoryStockRequest
             if (this.hasOwnProperty(property))
                 data[property] = this[property];
         }
-        data["branchId"] = this.branchId;
         data["productVariantId"] = this.productVariantId;
         data["orderId"] = this.orderId;
         data["quantity"] = this.quantity;
@@ -5033,7 +5455,6 @@ export class ReturnInventoryStockRequest implements IReturnInventoryStockRequest
 }
 
 export interface IReturnInventoryStockRequest {
-    branchId?: number;
     productVariantId?: number;
     orderId?: number | undefined;
     quantity?: number;
@@ -5043,8 +5464,6 @@ export interface IReturnInventoryStockRequest {
 }
 
 export class TransferInventoryStockRequest implements ITransferInventoryStockRequest {
-    sourceBranchId?: number;
-    destinationBranchId?: number;
     productVariantId?: number;
     quantity?: number;
     note?: string | undefined;
@@ -5066,8 +5485,6 @@ export class TransferInventoryStockRequest implements ITransferInventoryStockReq
                 if (_data.hasOwnProperty(property))
                     this[property] = _data[property];
             }
-            this.sourceBranchId = _data["sourceBranchId"];
-            this.destinationBranchId = _data["destinationBranchId"];
             this.productVariantId = _data["productVariantId"];
             this.quantity = _data["quantity"];
             this.note = _data["note"];
@@ -5087,8 +5504,6 @@ export class TransferInventoryStockRequest implements ITransferInventoryStockReq
             if (this.hasOwnProperty(property))
                 data[property] = this[property];
         }
-        data["sourceBranchId"] = this.sourceBranchId;
-        data["destinationBranchId"] = this.destinationBranchId;
         data["productVariantId"] = this.productVariantId;
         data["quantity"] = this.quantity;
         data["note"] = this.note;
@@ -5097,8 +5512,6 @@ export class TransferInventoryStockRequest implements ITransferInventoryStockReq
 }
 
 export interface ITransferInventoryStockRequest {
-    sourceBranchId?: number;
-    destinationBranchId?: number;
     productVariantId?: number;
     quantity?: number;
     note?: string | undefined;
@@ -5432,6 +5845,9 @@ export class UpdateVoucherRequest implements IUpdateVoucherRequest {
     validFrom?: Date;
     validUntil?: Date;
     voucherType?: number;
+    productId?: number | undefined;
+    categoryId?: number | undefined;
+    brandId?: number | undefined;
     display?: number;
     quantityPerUser?: number;
 
@@ -5461,6 +5877,9 @@ export class UpdateVoucherRequest implements IUpdateVoucherRequest {
             this.validFrom = _data["validFrom"] ? new Date(_data["validFrom"].toString()) : undefined as any;
             this.validUntil = _data["validUntil"] ? new Date(_data["validUntil"].toString()) : undefined as any;
             this.voucherType = _data["voucherType"];
+            this.productId = _data["productId"];
+            this.categoryId = _data["categoryId"];
+            this.brandId = _data["brandId"];
             this.display = _data["display"];
             this.quantityPerUser = _data["quantityPerUser"];
         }
@@ -5488,6 +5907,9 @@ export class UpdateVoucherRequest implements IUpdateVoucherRequest {
         data["validFrom"] = this.validFrom ? this.validFrom.toISOString() : undefined as any;
         data["validUntil"] = this.validUntil ? this.validUntil.toISOString() : undefined as any;
         data["voucherType"] = this.voucherType;
+        data["productId"] = this.productId;
+        data["categoryId"] = this.categoryId;
+        data["brandId"] = this.brandId;
         data["display"] = this.display;
         data["quantityPerUser"] = this.quantityPerUser;
         return data;
@@ -5504,6 +5926,9 @@ export interface IUpdateVoucherRequest {
     validFrom?: Date;
     validUntil?: Date;
     voucherType?: number;
+    productId?: number | undefined;
+    categoryId?: number | undefined;
+    brandId?: number | undefined;
     display?: number;
     quantityPerUser?: number;
 
@@ -5574,6 +5999,66 @@ export interface IUploadImageResult {
     [key: string]: any;
 }
 
+export class VariantAttributeValueDto implements IVariantAttributeValueDto {
+    attributeId?: number;
+    attributeName?: string;
+    attributeValueId?: number;
+    value?: string;
+
+    [key: string]: any;
+
+    constructor(data?: IVariantAttributeValueDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.attributeId = _data["attributeId"];
+            this.attributeName = _data["attributeName"];
+            this.attributeValueId = _data["attributeValueId"];
+            this.value = _data["value"];
+        }
+    }
+
+    static fromJS(data: any): VariantAttributeValueDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new VariantAttributeValueDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["attributeId"] = this.attributeId;
+        data["attributeName"] = this.attributeName;
+        data["attributeValueId"] = this.attributeValueId;
+        data["value"] = this.value;
+        return data;
+    }
+}
+
+export interface IVariantAttributeValueDto {
+    attributeId?: number;
+    attributeName?: string;
+    attributeValueId?: number;
+    value?: string;
+
+    [key: string]: any;
+}
+
 export class VoucherDto implements IVoucherDto {
     id?: number;
     code?: string;
@@ -5586,6 +6071,9 @@ export class VoucherDto implements IVoucherDto {
     validFrom?: Date;
     validUntil?: Date;
     voucherType?: string;
+    productId?: number | undefined;
+    categoryId?: number | undefined;
+    brandId?: number | undefined;
     status?: string;
     display?: string;
     quantityPerUser?: number;
@@ -5618,6 +6106,9 @@ export class VoucherDto implements IVoucherDto {
             this.validFrom = _data["validFrom"] ? new Date(_data["validFrom"].toString()) : undefined as any;
             this.validUntil = _data["validUntil"] ? new Date(_data["validUntil"].toString()) : undefined as any;
             this.voucherType = _data["voucherType"];
+            this.productId = _data["productId"];
+            this.categoryId = _data["categoryId"];
+            this.brandId = _data["brandId"];
             this.status = _data["status"];
             this.display = _data["display"];
             this.quantityPerUser = _data["quantityPerUser"];
@@ -5648,6 +6139,9 @@ export class VoucherDto implements IVoucherDto {
         data["validFrom"] = this.validFrom ? this.validFrom.toISOString() : undefined as any;
         data["validUntil"] = this.validUntil ? this.validUntil.toISOString() : undefined as any;
         data["voucherType"] = this.voucherType;
+        data["productId"] = this.productId;
+        data["categoryId"] = this.categoryId;
+        data["brandId"] = this.brandId;
         data["status"] = this.status;
         data["display"] = this.display;
         data["quantityPerUser"] = this.quantityPerUser;
@@ -5667,6 +6161,9 @@ export interface IVoucherDto {
     validFrom?: Date;
     validUntil?: Date;
     voucherType?: string;
+    productId?: number | undefined;
+    categoryId?: number | undefined;
+    brandId?: number | undefined;
     status?: string;
     display?: string;
     quantityPerUser?: number;

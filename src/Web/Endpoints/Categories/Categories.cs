@@ -6,7 +6,6 @@ using Fashia.Application.Categories.Commands.UpdateCategory;
 using Fashia.Application.Categories.Queries.GetCategories;
 using Fashia.Application.Categories.Queries.GetCategoryById;
 using Fashia.Application.Common.Interfaces;
-using Fashia.Domain.Constants;
 using Fashia.Web.Endpoints.Categories.Requests;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -17,36 +16,25 @@ public class Categories : IEndpointGroup
 {
     public static void Map(RouteGroupBuilder groupBuilder)
     {
-        // groupBuilder.RequireAuthorization();
-
         groupBuilder.MapGet(GetCategories);
         groupBuilder.MapGet(GetCategoryById, "{id:int}");
 
-        groupBuilder
-            .MapPost(CreateCategory)
-            .DisableAntiforgery()
-            .RequireAuthorization(Policies.CanManageCategories);
+        groupBuilder.MapPost(CreateCategory).RequireAuthorization();
 
-        groupBuilder
-            .MapPut(UpdateCategory, "{id:int}")
-            .RequireAuthorization(Policies.CanManageCategories);
+        groupBuilder.MapPut(UpdateCategory, "{id:int}").RequireAuthorization();
 
-        groupBuilder
-            .MapDelete(DeleteCategory, "{id:int}")
-            .RequireAuthorization(Policies.CanManageCategories);
+        groupBuilder.MapDelete(DeleteCategory, "{id:int}").RequireAuthorization();
 
-        groupBuilder
-            .MapPatch("/activate/{id:int}", ActivateCategory)
-            .RequireAuthorization(Policies.CanManageCategories);
+        groupBuilder.MapPatch("/activate/{id:int}", ActivateCategory).RequireAuthorization();
 
-        groupBuilder
-            .MapPatch("/deactivate/{id:int}", DeactivateCategory)
-            .RequireAuthorization(Policies.CanManageCategories);
+        groupBuilder.MapPatch("/deactivate/{id:int}", DeactivateCategory).RequireAuthorization();
     }
 
     [EndpointSummary("Get all Categories")]
     [EndpointDescription("Retrieves all categories.")]
-    public static async Task<Ok<IReadOnlyCollection<CategoryDto>>> GetCategories(ISender sender)
+    public static async Task<Ok<IReadOnlyCollection<CategoryDto>>> GetCategories(
+        [FromServices] ISender sender
+    )
     {
         var categories = await sender.Send(new GetCategoriesQuery());
 
@@ -56,8 +44,8 @@ public class Categories : IEndpointGroup
     [EndpointSummary("Get Category by Id")]
     [EndpointDescription("Retrieves a category by id.")]
     public static async Task<Results<Ok<CategoryDto>, NotFound>> GetCategoryById(
-        ISender sender,
-        int id
+        [FromServices] ISender sender,
+        [FromRoute] int id
     )
     {
         var category = await sender.Send(new GetCategoryByIdQuery(id));
@@ -68,9 +56,8 @@ public class Categories : IEndpointGroup
     [EndpointSummary("Create Category")]
     [EndpointDescription("Creates a new category.")]
     public static async Task<Created<int>> CreateCategory(
-        ISender sender,
-        IFileStorageService fileStorageService,
-        CreateCategoryRequest request,
+        [FromServices] ISender sender,
+        [FromBody] CreateCategoryRequest request,
         CancellationToken cancellationToken
     )
     {
@@ -91,9 +78,9 @@ public class Categories : IEndpointGroup
     [EndpointSummary("Update Category")]
     [EndpointDescription("Updates an existing category.")]
     public static async Task<NoContent> UpdateCategory(
-        ISender sender,
-        int id,
-        UpdateCategoryCommand command
+        [FromServices] ISender sender,
+        [FromRoute] int id,
+        [FromBody] UpdateCategoryCommand command
     )
     {
         if (id != command.Id)
@@ -106,7 +93,10 @@ public class Categories : IEndpointGroup
 
     [EndpointSummary("Delete Category")]
     [EndpointDescription("Deletes an existing category.")]
-    public static async Task<NoContent> DeleteCategory(ISender sender, int id)
+    public static async Task<NoContent> DeleteCategory(
+        [FromServices] ISender sender,
+        [FromRoute] int id
+    )
     {
         await sender.Send(new DeleteCategoryCommand(id));
 
@@ -115,7 +105,10 @@ public class Categories : IEndpointGroup
 
     [EndpointSummary("Activate Category")]
     [EndpointDescription("Activates a category.")]
-    public static async Task<NoContent> ActivateCategory(ISender sender, int id)
+    public static async Task<NoContent> ActivateCategory(
+        [FromServices] ISender sender,
+        [FromRoute] int id
+    )
     {
         await sender.Send(new ActivateCategoryCommand(id));
 
@@ -124,7 +117,10 @@ public class Categories : IEndpointGroup
 
     [EndpointSummary("Deactivate Category")]
     [EndpointDescription("Deactivates a category.")]
-    public static async Task<NoContent> DeactivateCategory(ISender sender, int id)
+    public static async Task<NoContent> DeactivateCategory(
+        [FromServices] ISender sender,
+        [FromRoute] int id
+    )
     {
         await sender.Send(new DeactivateCategoryCommand(id));
 

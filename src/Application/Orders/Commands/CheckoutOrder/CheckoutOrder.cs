@@ -28,13 +28,10 @@ public sealed class CheckoutOrderCommandHandler : IRequestHandler<CheckoutOrderC
 
     public async Task<int> Handle(CheckoutOrderCommand request, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(_user.Id))
-            throw new UnauthorizedAccessException("Authenticated user is required.");
-
         var requestedCartItemIds = request.CartItemIds.Where(x => x > 0).Distinct().ToList();
 
         if (requestedCartItemIds.Count == 0)
-            throw new InvalidOperationException("At least one cart item is required.");
+            throw new ValidationException("At least one cart item is required.");
 
         var customer = await _context.Customers.FirstOrDefaultAsync(
             x => x.UserId == _user.Id,
@@ -49,13 +46,13 @@ public sealed class CheckoutOrderCommandHandler : IRequestHandler<CheckoutOrderC
             .FirstOrDefaultAsync(x => x.CustomerId == customer.Id, cancellationToken);
 
         if (cart is null)
-            throw new InvalidOperationException("Cart not found.");
+            throw new ValidationException("Cart not found.");
 
         var selectedCartItems = cart.Items.Where(x => requestedCartItemIds.Contains(x.Id)).ToList();
 
         if (selectedCartItems.Count != requestedCartItemIds.Count)
         {
-            throw new InvalidOperationException(
+            throw new ValidationException(
                 "One or more selected cart items do not belong to the current customer's cart."
             );
         }
@@ -66,7 +63,7 @@ public sealed class CheckoutOrderCommandHandler : IRequestHandler<CheckoutOrderC
         );
 
         if (shippingAddress is null)
-            throw new InvalidOperationException("Shipping address not found.");
+            throw new ValidationException("Shipping address not found.");
 
         var variantIds = selectedCartItems.Select(x => x.ProductVariantId).Distinct().ToList();
 
@@ -78,15 +75,13 @@ public sealed class CheckoutOrderCommandHandler : IRequestHandler<CheckoutOrderC
             .ToListAsync(cancellationToken);
 
         if (variants.Count != variantIds.Count)
-            throw new InvalidOperationException("One or more product variants do not exist.");
+            throw new ValidationException("One or more product variants do not exist.");
 
         foreach (var variant in variants)
         {
             if (variant.Product.Status != ProductStatus.Active)
             {
-                throw new InvalidOperationException(
-                    $"Product variant {variant.Id} is not available."
-                );
+                throw new ValidationException($"Product variant {variant.Id} is not available.");
             }
         }
 
@@ -115,7 +110,7 @@ public sealed class CheckoutOrderCommandHandler : IRequestHandler<CheckoutOrderC
             .FirstOrDefault();
 
         if (branchId is null)
-            throw new InvalidOperationException("Insufficient inventory.");
+            throw new ValidationException("Insufficient inventory.");
 
         var orderBuilder = Order
             .CreateBuilder()

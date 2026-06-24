@@ -23,5 +23,27 @@ public class VoucherConfiguration : IEntityTypeConfiguration<Voucher>
         builder.Property(x => x.Status).HasConversion<int>().IsRequired();
         builder.Property(x => x.Display).HasConversion<int>().IsRequired();
         builder.Property(x => x.QuantityPerUser).IsRequired();
+        builder.Property(x => x.Version).IsRowVersion();
+
+        builder
+            .HasOne(x => x.Product)
+            .WithMany()
+            .HasForeignKey(x => x.ProductId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder
+            .HasOne(x => x.Category)
+            .WithMany()
+            .HasForeignKey(x => x.CategoryId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder
+            .HasOne(x => x.Brand)
+            .WithMany()
+            .HasForeignKey(x => x.BrandId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

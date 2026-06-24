@@ -17,17 +17,11 @@ public class Vouchers : IEndpointGroup
         groupBuilder.MapGet(GetOrderVoucherUsages, "usages");
         groupBuilder.MapGet(GetVoucherUsages, "{id:int}/usages");
 
-        groupBuilder.MapPost(CreateVoucher).RequireAuthorization(Policies.CanManageProducts);
-        groupBuilder.MapPut(UpdateVoucher, "{id:int}").RequireAuthorization(Policies.CanManageProducts);
-        groupBuilder
-            .MapPatch(DeactivateVoucher, "deactivate/{id:int}")
-            .RequireAuthorization(Policies.CanManageProducts);
-        groupBuilder
-            .MapPatch(SuspendVoucher, "suspend/{id:int}")
-            .RequireAuthorization(Policies.CanManageProducts);
-        groupBuilder
-            .MapPatch(ReactivateVoucher, "reactivate/{id:int}")
-            .RequireAuthorization(Policies.CanManageProducts);
+        groupBuilder.MapPost(CreateVoucher).RequireAuthorization();
+        groupBuilder.MapPut(UpdateVoucher, "{id:int}").RequireAuthorization();
+        groupBuilder.MapPatch(DeactivateVoucher, "deactivate/{id:int}").RequireAuthorization();
+        groupBuilder.MapPatch(SuspendVoucher, "suspend/{id:int}").RequireAuthorization();
+        groupBuilder.MapPatch(ReactivateVoucher, "reactivate/{id:int}").RequireAuthorization();
     }
 
     [EndpointSummary("Get all Vouchers")]
@@ -96,6 +90,9 @@ public class Vouchers : IEndpointGroup
                 ValidFrom = request.ValidFrom,
                 ValidUntil = request.ValidUntil,
                 VoucherType = request.VoucherType,
+                ProductId = request.ProductId,
+                CategoryId = request.CategoryId,
+                BrandId = request.BrandId,
                 Display = request.Display,
                 QuantityPerUser = request.QuantityPerUser,
             },
@@ -127,6 +124,9 @@ public class Vouchers : IEndpointGroup
                 ValidFrom = request.ValidFrom,
                 ValidUntil = request.ValidUntil,
                 VoucherType = request.VoucherType,
+                ProductId = request.ProductId,
+                CategoryId = request.CategoryId,
+                BrandId = request.BrandId,
                 Display = request.Display,
                 QuantityPerUser = request.QuantityPerUser,
             },

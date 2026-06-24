@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Fashia.Domain.Constants;
 using Fashia.Infrastructure.Data;
 using Fashia.Infrastructure.Identity;
@@ -61,7 +62,7 @@ public static class TestApp
 
             foreach (var role in roles)
             {
-                await roleManager.CreateAsync(new IdentityRole(role));
+                await EnsureRoleWithClaimsAsync(roleManager, role);
             }
 
             await userManager.AddToRolesAsync(user, roles);
@@ -135,4 +136,54 @@ public static class TestApp
 
         return await context.Set<TEntity>().CountAsync();
     }
+
+    private static async Task EnsureRoleWithClaimsAsync(
+        RoleManager<IdentityRole> roleManager,
+        string roleName
+    )
+    {
+        var role = await roleManager.FindByNameAsync(roleName);
+
+        if (role is null)
+        {
+            role = new IdentityRole(roleName);
+            await roleManager.CreateAsync(role);
+        }
+
+        var permissions = GetPermissionsForRole(roleName);
+        if (permissions.Length == 0)
+            return;
+
+        var existingClaims = await roleManager.GetClaimsAsync(role);
+
+        foreach (var permission in permissions)
+        {
+            var alreadyExists = existingClaims.Any(x =>
+                x.Type == CustomClaimTypes.Permission && x.Value == permission
+            );
+
+            if (!alreadyExists)
+            {
+                await roleManager.AddClaimAsync(
+                    role,
+                    new Claim(CustomClaimTypes.Permission, permission)
+                );
+            }
+        }
+    }
+
+    private static string[] GetPermissionsForRole(string roleName) =>
+        roleName switch
+        {
+            Roles.Administrator =>
+            [
+                Permissions.Categories.Manage,
+                Permissions.Products.Manage,
+                Permissions.Branches.Manage,
+                Permissions.BranchInventories.Manage,
+                Permissions.Vouchers.Manage,
+            ],
+            Roles.BranchManager => [Permissions.BranchInventories.Manage],
+            _ => [],
+        };
 }

@@ -1,56 +1,24 @@
-using Fashia.Domain.Entities;
-
 namespace Fashia.Application.Products.Queries.Common;
 
 public sealed class ProductVariantDto
 {
-    public int Id { get; init; }
+    public int Id { get; set; }
 
-    public string DisplayName { get; init; } = string.Empty;
+    public string Sku { get; set; } = string.Empty;
 
-    public long OriginalPrice { get; init; }
+    public long OriginalPrice { get; set; }
 
-    public decimal DiscountPercentage { get; init; }
+    public decimal DiscountPercentage { get; set; }
 
-    public int StockQuantity { get; init; }
+    public long FinalPrice { get; set; }
 
-    public decimal SellingPrice { get; init; }
+    public int Quantity { get; set; }
 
-    public IReadOnlyCollection<ProductVariantAttributeValueDto> AttributeValues { get; init; } = [];
-    public IReadOnlyCollection<ImageDto> ImageUrls { get; init; } = [];
+    public int ReservedQuantity { get; set; }
 
-    private class Mapping : Profile
-    {
-        public Mapping()
-        {
-            CreateMap<ProductVariant, ProductVariantDto>()
-                .ForMember(
-                    dest => dest.OriginalPrice,
-                    opt => opt.MapFrom(src => src.OriginalPrice.Amount)
-                )
-                .ForMember(
-                    dest => dest.DiscountPercentage,
-                    opt => opt.MapFrom(src => src.DiscountPercentage.BasisPoints)
-                )
-                .ForMember(
-                    dest => dest.SellingPrice,
-                    opt => opt.MapFrom(src => src.SellingPrice.Amount)
-                )
-                .ForMember(dest => dest.DisplayName, opt => opt.Ignore())
-                .ForMember(dest => dest.StockQuantity, opt => opt.Ignore())
-                .ForMember(
-                    dest => dest.ImageUrls,
-                    opt =>
-                        opt.MapFrom(src =>
-                            src.Images.Select(i => new ImageDto
-                            {
-                                UploadedFileId = i.UploadedFile.Id,
-                                Url = i.UploadedFile.Url,
-                                IsMain = i.IsMain,
-                                DisplayOrder = i.DisplayOrder,
-                            })
-                        )
-                );
-        }
-    }
+    public int AvailableQuantity => Quantity - ReservedQuantity;
+
+    public List<int> AttributeValueIds { get; set; } = [];
+
+    public List<VariantAttributeValueDto> AttributeValues { get; set; } = [];
 }

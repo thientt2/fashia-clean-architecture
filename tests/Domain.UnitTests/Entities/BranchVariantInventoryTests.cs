@@ -9,7 +9,7 @@ public class BranchVariantInventoryTests
     [Test]
     public void ShouldTrackAvailableStockSeparatelyFromReservedStock()
     {
-        var inventory = new BranchVariantInventory(branchId: 1, variantId: 2);
+        var inventory = BranchVariantInventory.Create(branchId: 1, variantId: 2);
 
         inventory.IncreaseStock(10);
         inventory.ReserveStock(4);
@@ -22,7 +22,7 @@ public class BranchVariantInventoryTests
     [Test]
     public void ShouldRejectReservationGreaterThanAvailableStock()
     {
-        var inventory = new BranchVariantInventory(branchId: 1, variantId: 2);
+        var inventory = BranchVariantInventory.Create(branchId: 1, variantId: 2);
         inventory.IncreaseStock(5);
         inventory.ReserveStock(3);
 
@@ -32,7 +32,7 @@ public class BranchVariantInventoryTests
     [Test]
     public void ShouldRejectDecreaseGreaterThanAvailableStock()
     {
-        var inventory = new BranchVariantInventory(branchId: 1, variantId: 2);
+        var inventory = BranchVariantInventory.Create(branchId: 1, variantId: 2);
         inventory.IncreaseStock(10);
         inventory.ReserveStock(7);
 
@@ -42,7 +42,7 @@ public class BranchVariantInventoryTests
     [Test]
     public void ShouldRejectReleaseGreaterThanReservedStock()
     {
-        var inventory = new BranchVariantInventory(branchId: 1, variantId: 2);
+        var inventory = BranchVariantInventory.Create(branchId: 1, variantId: 2);
         inventory.IncreaseStock(10);
         inventory.ReserveStock(3);
 
@@ -52,7 +52,7 @@ public class BranchVariantInventoryTests
     [Test]
     public void ShouldCommitReservedStock()
     {
-        var inventory = new BranchVariantInventory(branchId: 1, variantId: 2);
+        var inventory = BranchVariantInventory.Create(branchId: 1, variantId: 2);
         inventory.IncreaseStock(10);
         inventory.ReserveStock(4);
 
@@ -66,7 +66,7 @@ public class BranchVariantInventoryTests
     [Test]
     public void ShouldRejectAdjustBelowReservedStock()
     {
-        var inventory = new BranchVariantInventory(branchId: 1, variantId: 2);
+        var inventory = BranchVariantInventory.Create(branchId: 1, variantId: 2);
         inventory.IncreaseStock(10);
         inventory.ReserveStock(6);
 
@@ -76,7 +76,7 @@ public class BranchVariantInventoryTests
     [Test]
     public void ShouldReturnStockWithoutChangingReservedStock()
     {
-        var inventory = new BranchVariantInventory(branchId: 1, variantId: 2);
+        var inventory = BranchVariantInventory.Create(branchId: 1, variantId: 2);
         inventory.IncreaseStock(10);
         inventory.ReserveStock(3);
 

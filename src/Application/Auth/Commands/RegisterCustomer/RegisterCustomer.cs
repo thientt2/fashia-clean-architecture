@@ -1,3 +1,4 @@
+using Fashia.Application.Common.Exceptions;
 using Fashia.Application.Common.Interfaces;
 using Fashia.Domain.Constants;
 using Fashia.Domain.Entities;
@@ -51,7 +52,7 @@ public class RegisterCustomerCommandHandler : IRequestHandler<RegisterCustomerCo
 
         if (!result.Succeeded)
         {
-            throw new ValidationException(string.Join(", ", result.Errors));
+            throw new ConflictException(string.Join(", ", result.Errors));
         }
 
         if (await _identityService.RoleExistsAsync(Roles.Customer))
@@ -60,7 +61,7 @@ public class RegisterCustomerCommandHandler : IRequestHandler<RegisterCustomerCo
 
             if (!addRoleResult.Succeeded)
             {
-                throw new ValidationException(string.Join(", ", addRoleResult.Errors));
+                throw new ConflictException(string.Join(", ", addRoleResult.Errors));
             }
         }
 

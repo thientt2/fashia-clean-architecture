@@ -1,9 +1,12 @@
 using Fashia.Application.Common.Interfaces;
+using Fashia.Application.Common.Security;
+using Fashia.Domain.Constants;
 using Fashia.Domain.Entities;
 using Fashia.Domain.Enums;
 
 namespace Fashia.Application.Vouchers.Commands.CreateVoucher;
 
+[Authorize(Policy = Policies.CreateVouchers)]
 public sealed record CreateVoucherCommand : IRequest<int>
 {
     public string Code { get; init; } = string.Empty;
@@ -15,6 +18,9 @@ public sealed record CreateVoucherCommand : IRequest<int>
     public DateTime ValidFrom { get; init; }
     public DateTime ValidUntil { get; init; }
     public VoucherType VoucherType { get; init; } = VoucherType.All;
+    public int? ProductId { get; init; }
+    public int? CategoryId { get; init; }
+    public int? BrandId { get; init; }
     public Display Display { get; init; } = Display.Public;
     public int QuantityPerUser { get; init; } = 1;
 }
@@ -28,10 +34,7 @@ public sealed class CreateVoucherCommandHandler : IRequestHandler<CreateVoucherC
         _context = context;
     }
 
-    public async Task<int> Handle(
-        CreateVoucherCommand request,
-        CancellationToken cancellationToken
-    )
+    public async Task<int> Handle(CreateVoucherCommand request, CancellationToken cancellationToken)
     {
         var code = request.Code.Trim().ToUpperInvariant();
         var codeExists = await _context.Vouchers.AnyAsync(x => x.Code == code, cancellationToken);
@@ -50,7 +53,10 @@ public sealed class CreateVoucherCommandHandler : IRequestHandler<CreateVoucherC
             request.QuantityPerUser,
             request.UsageLimit,
             request.MinOrderAmount,
-            request.MaxDiscountAmount
+            request.MaxDiscountAmount,
+            request.ProductId,
+            request.CategoryId,
+            request.BrandId
         );
 
         _context.Vouchers.Add(voucher);

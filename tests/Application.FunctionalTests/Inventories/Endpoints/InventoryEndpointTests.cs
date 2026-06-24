@@ -34,8 +34,8 @@ public class InventoryEndpointTests : TestBase
         using var client = TestApp.CreateClient();
 
         var response = await client.PostAsJsonAsync(
-            "/api/inventories/initialize",
-            new { BranchId = 1, ProductVariantId = 1, Quantity = 1 }
+            "/api/inventories/1/initialize",
+            new { ProductVariantId = 1, Quantity = 1 }
         );
 
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -93,7 +93,7 @@ public class InventoryEndpointTests : TestBase
 
         await TestApp.AddAsync(product);
 
-        var inventory = new BranchVariantInventory(branch.Id, variant.Id);
+        var inventory = BranchVariantInventory.Create(branch.Id, variant.Id);
         inventory.IncreaseStock(10);
         inventory.ReserveStock(2);
         await TestApp.AddAsync(inventory);

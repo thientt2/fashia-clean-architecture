@@ -1,10 +1,13 @@
 using Fashia.Application.Common.Interfaces;
+using Fashia.Application.Common.Security;
+using Fashia.Domain.Constants;
 using Fashia.Domain.Entities;
 using Fashia.Domain.ValueObjects;
 using MediatR;
 
 namespace Fashia.Application.Products.Commands.CreateProduct;
 
+[Authorize(Policy = Policies.ManageProducts)]
 public sealed record CreateProductCommand : IRequest<int>, ITransactionalRequest
 {
     public string Name { get; init; } = string.Empty;

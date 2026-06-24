@@ -11,6 +11,8 @@ public class OrderVoucherConfiguration : IEntityTypeConfiguration<OrderVoucher>
         builder.Property(x => x.VoucherId).IsRequired();
         builder.Property(x => x.OrderId).IsRequired();
         builder.Property(x => x.VoucherCode).HasMaxLength(50).IsRequired();
+        builder.Property(x => x.DiscountType).HasConversion<int>().IsRequired();
+        builder.Property(x => x.DiscountValue).IsRequired();
 
         builder.OwnsOne(
             x => x.DiscountAmount,

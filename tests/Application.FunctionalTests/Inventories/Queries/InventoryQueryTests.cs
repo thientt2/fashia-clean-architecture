@@ -190,16 +190,16 @@ public class InventoryQueryTests : TestBase
 
         await TestApp.AddAsync(product);
 
-        var firstInventory = new BranchVariantInventory(branch.Id, firstVariant.Id);
+        var firstInventory = BranchVariantInventory.Create(branch.Id, firstVariant.Id);
         firstInventory.IncreaseStock(10);
         firstInventory.ReserveStock(3);
         await TestApp.AddAsync(firstInventory);
 
-        var secondInventory = new BranchVariantInventory(branch.Id, secondVariant.Id);
+        var secondInventory = BranchVariantInventory.Create(branch.Id, secondVariant.Id);
         secondInventory.IncreaseStock(14);
         await TestApp.AddAsync(secondInventory);
 
-        var secondBranchInventory = new BranchVariantInventory(secondBranch.Id, firstVariant.Id);
+        var secondBranchInventory = BranchVariantInventory.Create(secondBranch.Id, firstVariant.Id);
         secondBranchInventory.IncreaseStock(4);
         secondBranchInventory.ReserveStock(1);
         await TestApp.AddAsync(secondBranchInventory);

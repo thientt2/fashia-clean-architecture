@@ -1,10 +1,13 @@
 using Fashia.Application.Common.Interfaces;
+using Fashia.Application.Common.Security;
+using Fashia.Domain.Constants;
 using Fashia.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fashia.Application.Categories.Commands.CreateCategory;
 
+[Authorize(Policy = Policies.CreateCategories)]
 public record CreateCategoryCommand : IRequest<int>
 {
     public string Name { get; init; } = string.Empty;
@@ -25,12 +28,17 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
         _context = context;
     }
 
-    public async Task<int> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
+    public async Task<int> Handle(
+        CreateCategoryCommand request,
+        CancellationToken cancellationToken
+    )
     {
         if (request.ParentId.HasValue)
         {
-            var parentExists = await _context.Categories
-                .AnyAsync(x => x.Id == request.ParentId.Value, cancellationToken);
+            var parentExists = await _context.Categories.AnyAsync(
+                x => x.Id == request.ParentId.Value,
+                cancellationToken
+            );
 
             if (!parentExists)
                 throw new InvalidOperationException("Parent category does not exist.");
@@ -40,10 +48,13 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
             request.Name,
             request.Description,
             request.ImageUrl,
-            request.ParentId);
+            request.ParentId
+        );
 
-        var slugExists = await _context.Categories
-            .AnyAsync(x => x.Slug == category.Slug, cancellationToken);
+        var slugExists = await _context.Categories.AnyAsync(
+            x => x.Slug == category.Slug,
+            cancellationToken
+        );
 
         if (slugExists)
             throw new InvalidOperationException("Category slug already exists.");

@@ -115,7 +115,53 @@ public class Order : BaseAuditableEntity
         RecalculateTotal();
     }
 
+    public void AddItemSnapshot(
+        int productVariantId,
+        string productName,
+        string productVariantName,
+        string? variantName,
+        string? variantAttributes,
+        string? sku,
+        Money unitPrice,
+        int quantity
+    )
+    {
+        EnsureCanModify();
+
+        _items.Add(
+            OrderItem.CreateSnapshot(
+                productVariantId,
+                productName,
+                productVariantName,
+                variantName,
+                variantAttributes,
+                sku,
+                unitPrice,
+                quantity
+            )
+        );
+
+        RecalculateTotal();
+    }
+
     public void ApplyVoucher(int voucherId, string voucherCode, Money discountAmount)
+    {
+        ApplyVoucher(
+            voucherId,
+            voucherCode,
+            DiscountType.FixedAmount,
+            checked((int)discountAmount.Amount),
+            discountAmount
+        );
+    }
+
+    public void ApplyVoucher(
+        int voucherId,
+        string voucherCode,
+        DiscountType discountType,
+        int discountValue,
+        Money discountAmount
+    )
     {
         EnsureCanModify();
 
@@ -127,7 +173,13 @@ public class Order : BaseAuditableEntity
 
         DiscountAmount = discountAmount.CapAt(SubTotalAmount);
 
-        OrderVoucher = new OrderVoucher(voucherId, voucherCode, DiscountAmount);
+        OrderVoucher = new OrderVoucher(
+            voucherId,
+            voucherCode,
+            discountType,
+            discountValue,
+            DiscountAmount
+        );
 
         RecalculateTotal();
     }
@@ -244,5 +296,13 @@ public class Order : BaseAuditableEntity
         var value = note?.Trim();
 
         Note = string.IsNullOrWhiteSpace(value) ? null : value;
+    }
+
+    internal void MarkPlaced()
+    {
+        if (!_items.Any())
+            throw new InvalidOperationException("Cannot place an empty order.");
+
+        AddDomainEvent(new OrderPlacedEvent(this));
     }
 }

@@ -15,6 +15,9 @@ public sealed record UpdateVoucherCommand : IRequest
     public DateTime ValidFrom { get; init; }
     public DateTime ValidUntil { get; init; }
     public VoucherType VoucherType { get; init; } = VoucherType.All;
+    public int? ProductId { get; init; }
+    public int? CategoryId { get; init; }
+    public int? BrandId { get; init; }
     public Display Display { get; init; } = Display.Public;
     public int QuantityPerUser { get; init; } = 1;
 }
@@ -48,13 +51,17 @@ public sealed class UpdateVoucherCommandHandler : IRequestHandler<UpdateVoucherC
             throw new InvalidOperationException("Voucher code already exists.");
 
         voucher.UpdateCode(code);
-        voucher.UpdateDiscountType(request.DiscountType);
-        voucher.UpdateDiscountAmount(request.DiscountAmount);
+        voucher.UpdateDiscount(request.DiscountType, request.DiscountAmount);
         voucher.UpdateMinOrderAmount(request.MinOrderAmount);
         voucher.UpdateMaxDiscountAmount(request.MaxDiscountAmount);
         voucher.UpdateUsageLimit(request.UsageLimit);
         voucher.UpdateDateRange(request.ValidFrom, request.ValidUntil);
-        voucher.UpdateVoucherType(request.VoucherType);
+        voucher.UpdateApplicability(
+            request.VoucherType,
+            request.ProductId,
+            request.CategoryId,
+            request.BrandId
+        );
         voucher.UpdateDisplay(request.Display);
         voucher.UpdateQuantityPerUser(request.QuantityPerUser);
 

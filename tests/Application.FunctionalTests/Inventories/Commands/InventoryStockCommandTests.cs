@@ -91,7 +91,9 @@ public class InventoryStockCommandTests : TestBase
         await TestApp.RunAsAdministratorAsync();
         var seed = await AddInventorySeedDataAsync();
 
-        await TestApp.AddAsync(new BranchVariantInventory(seed.BranchId, seed.ProductVariantId));
+        await TestApp.AddAsync(
+            BranchVariantInventory.Create(seed.BranchId, seed.ProductVariantId)
+        );
 
         await TestApp.SendAsync(
             new IncreaseInventoryStockCommand
@@ -148,7 +150,7 @@ public class InventoryStockCommandTests : TestBase
     {
         await TestApp.RunAsAdministratorAsync();
         var seed = await AddInventorySeedDataAsync();
-        var inventory = new BranchVariantInventory(seed.BranchId, seed.ProductVariantId);
+        var inventory = BranchVariantInventory.Create(seed.BranchId, seed.ProductVariantId);
         inventory.IncreaseStock(10);
         await TestApp.AddAsync(inventory);
 
@@ -190,7 +192,7 @@ public class InventoryStockCommandTests : TestBase
     {
         await TestApp.RunAsAdministratorAsync();
         var seed = await AddInventorySeedDataAsync();
-        var inventory = new BranchVariantInventory(seed.BranchId, seed.ProductVariantId);
+        var inventory = BranchVariantInventory.Create(seed.BranchId, seed.ProductVariantId);
         inventory.IncreaseStock(10);
         inventory.ReserveStock(7);
         await TestApp.AddAsync(inventory);
@@ -212,7 +214,7 @@ public class InventoryStockCommandTests : TestBase
     {
         await TestApp.RunAsAdministratorAsync();
         var seed = await AddInventorySeedDataAsync();
-        var inventory = new BranchVariantInventory(seed.BranchId, seed.ProductVariantId);
+        var inventory = BranchVariantInventory.Create(seed.BranchId, seed.ProductVariantId);
         inventory.IncreaseStock(10);
         await TestApp.AddAsync(inventory);
 
@@ -253,7 +255,7 @@ public class InventoryStockCommandTests : TestBase
     {
         await TestApp.RunAsAdministratorAsync();
         var seed = await AddInventorySeedDataAsync();
-        var inventory = new BranchVariantInventory(seed.BranchId, seed.ProductVariantId);
+        var inventory = BranchVariantInventory.Create(seed.BranchId, seed.ProductVariantId);
         inventory.IncreaseStock(10);
         inventory.ReserveStock(7);
         await TestApp.AddAsync(inventory);
@@ -276,7 +278,7 @@ public class InventoryStockCommandTests : TestBase
         await TestApp.RunAsAdministratorAsync();
         var seed = await AddInventorySeedDataAsync();
         var destinationBranchId = await AddBranchAsync("Destination Branch");
-        var sourceInventory = new BranchVariantInventory(seed.BranchId, seed.ProductVariantId);
+        var sourceInventory = BranchVariantInventory.Create(seed.BranchId, seed.ProductVariantId);
         sourceInventory.IncreaseStock(10);
         await TestApp.AddAsync(sourceInventory);
 
@@ -331,7 +333,7 @@ public class InventoryStockCommandTests : TestBase
     {
         await TestApp.RunAsAdministratorAsync();
         var seed = await AddInventorySeedDataAsync();
-        var sourceInventory = new BranchVariantInventory(seed.BranchId, seed.ProductVariantId);
+        var sourceInventory = BranchVariantInventory.Create(seed.BranchId, seed.ProductVariantId);
         sourceInventory.IncreaseStock(10);
         await TestApp.AddAsync(sourceInventory);
 
@@ -354,7 +356,7 @@ public class InventoryStockCommandTests : TestBase
         await TestApp.RunAsAdministratorAsync();
         var seed = await AddInventorySeedDataAsync();
         var destinationBranchId = await AddBranchAsync("Destination Branch");
-        var sourceInventory = new BranchVariantInventory(seed.BranchId, seed.ProductVariantId);
+        var sourceInventory = BranchVariantInventory.Create(seed.BranchId, seed.ProductVariantId);
         sourceInventory.IncreaseStock(10);
         sourceInventory.ReserveStock(7);
         await TestApp.AddAsync(sourceInventory);
@@ -378,7 +380,7 @@ public class InventoryStockCommandTests : TestBase
         await TestApp.RunAsAdministratorAsync();
         var seed = await AddInventorySeedDataAsync();
         var orderId = await AddOrderAsync(seed.BranchId, seed.ProductVariantId);
-        var inventory = new BranchVariantInventory(seed.BranchId, seed.ProductVariantId);
+        var inventory = BranchVariantInventory.Create(seed.BranchId, seed.ProductVariantId);
         inventory.IncreaseStock(10);
         await TestApp.AddAsync(inventory);
 
@@ -426,7 +428,7 @@ public class InventoryStockCommandTests : TestBase
         await TestApp.RunAsAdministratorAsync();
         var seed = await AddInventorySeedDataAsync();
         var orderId = await AddOrderAsync(seed.BranchId, seed.ProductVariantId);
-        var inventory = new BranchVariantInventory(seed.BranchId, seed.ProductVariantId);
+        var inventory = BranchVariantInventory.Create(seed.BranchId, seed.ProductVariantId);
         inventory.IncreaseStock(10);
         inventory.ReserveStock(7);
         await TestApp.AddAsync(inventory);
@@ -450,7 +452,7 @@ public class InventoryStockCommandTests : TestBase
         await TestApp.RunAsAdministratorAsync();
         var seed = await AddInventorySeedDataAsync();
         var orderId = await AddOrderAsync(seed.BranchId, seed.ProductVariantId);
-        var inventory = new BranchVariantInventory(seed.BranchId, seed.ProductVariantId);
+        var inventory = BranchVariantInventory.Create(seed.BranchId, seed.ProductVariantId);
         inventory.IncreaseStock(10);
         inventory.ReserveStock(4);
         await TestApp.AddAsync(inventory);
@@ -497,7 +499,7 @@ public class InventoryStockCommandTests : TestBase
         await TestApp.RunAsAdministratorAsync();
         var seed = await AddInventorySeedDataAsync();
         var orderId = await AddOrderAsync(seed.BranchId, seed.ProductVariantId);
-        var inventory = new BranchVariantInventory(seed.BranchId, seed.ProductVariantId);
+        var inventory = BranchVariantInventory.Create(seed.BranchId, seed.ProductVariantId);
         inventory.IncreaseStock(10);
         inventory.ReserveStock(2);
         await TestApp.AddAsync(inventory);
@@ -521,7 +523,7 @@ public class InventoryStockCommandTests : TestBase
         await TestApp.RunAsAdministratorAsync();
         var seed = await AddInventorySeedDataAsync();
         var orderId = await AddOrderAsync(seed.BranchId, seed.ProductVariantId);
-        var inventory = new BranchVariantInventory(seed.BranchId, seed.ProductVariantId);
+        var inventory = BranchVariantInventory.Create(seed.BranchId, seed.ProductVariantId);
         inventory.IncreaseStock(10);
         inventory.ReserveStock(4);
         await TestApp.AddAsync(inventory);
@@ -570,7 +572,7 @@ public class InventoryStockCommandTests : TestBase
         await TestApp.RunAsAdministratorAsync();
         var seed = await AddInventorySeedDataAsync();
         var orderId = await AddOrderAsync(seed.BranchId, seed.ProductVariantId);
-        var inventory = new BranchVariantInventory(seed.BranchId, seed.ProductVariantId);
+        var inventory = BranchVariantInventory.Create(seed.BranchId, seed.ProductVariantId);
         inventory.IncreaseStock(10);
         inventory.ReserveStock(2);
         await TestApp.AddAsync(inventory);
@@ -594,7 +596,7 @@ public class InventoryStockCommandTests : TestBase
         await TestApp.RunAsAdministratorAsync();
         var seed = await AddInventorySeedDataAsync();
         var orderId = await AddOrderAsync(seed.BranchId, seed.ProductVariantId);
-        var inventory = new BranchVariantInventory(seed.BranchId, seed.ProductVariantId);
+        var inventory = BranchVariantInventory.Create(seed.BranchId, seed.ProductVariantId);
         inventory.IncreaseStock(10);
         inventory.ReserveStock(2);
         await TestApp.AddAsync(inventory);

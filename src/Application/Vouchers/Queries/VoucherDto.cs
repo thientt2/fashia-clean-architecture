@@ -13,6 +13,9 @@ public sealed record VoucherDto
     public DateTime ValidFrom { get; init; }
     public DateTime ValidUntil { get; init; }
     public string VoucherType { get; init; } = string.Empty;
+    public int? ProductId { get; init; }
+    public int? CategoryId { get; init; }
+    public int? BrandId { get; init; }
     public string Status { get; init; } = string.Empty;
     public string Display { get; init; } = string.Empty;
     public int QuantityPerUser { get; init; }

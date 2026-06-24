@@ -30,14 +30,79 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<OrderVoucher> OrderVouchers => Set<OrderVoucher>();
+    public DbSet<IdempotencyKey> IdempotencyKeys => Set<IdempotencyKey>();
     public DbSet<Voucher> Vouchers => Set<Voucher>();
     public DbSet<CustomerVoucher> CustomerVouchers => Set<CustomerVoucher>();
     public DbSet<UploadedFile> UploadedFiles => Set<UploadedFile>();
+    public DbSet<ProductImage> ProductImages => Set<ProductImage>();
+    public DbSet<ProductVariantImage> ProductVariantImages => Set<ProductVariantImage>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+    }
+
+    public async Task<bool> TryInsertIdempotencyKeyAsync(
+        IdempotencyKey idempotencyKey,
+        CancellationToken cancellationToken
+    )
+    {
+        var affectedRows = await Database.ExecuteSqlInterpolatedAsync(
+            $"""
+            INSERT INTO "IdempotencyKeys"
+                ("Key", "CustomerId", "RequestHash", "CreatedAt", "ExpiresAt")
+            VALUES
+                ({idempotencyKey.Key}, {idempotencyKey.CustomerId}, {idempotencyKey.RequestHash},
+                 {idempotencyKey.CreatedAt}, {idempotencyKey.ExpiresAt})
+            ON CONFLICT ("Key") DO NOTHING
+            """,
+            cancellationToken
+        );
+
+        return affectedRows == 1;
+    }
+
+    public async Task CompleteIdempotencyKeyAsync(
+        string key,
+        int orderId,
+        int responseStatusCode,
+        string responseBody,
+        CancellationToken cancellationToken
+    )
+    {
+        var affectedRows = await Database.ExecuteSqlInterpolatedAsync(
+            $"""
+            UPDATE "IdempotencyKeys"
+            SET "OrderId" = {orderId},
+                "ResponseStatusCode" = {responseStatusCode},
+                "ResponseBody" = CAST({responseBody} AS jsonb)
+            WHERE "Key" = {key} AND "OrderId" IS NULL
+            """,
+            cancellationToken
+        );
+
+        if (affectedRows != 1)
+            throw new DbUpdateConcurrencyException("Idempotency record could not be completed.");
+    }
+
+    public async Task<TResponse> ExecuteInTransactionAsync<TResponse>(
+        Func<Task<TResponse>> operation,
+        CancellationToken cancellationToken
+    )
+    {
+        var strategy = Database.CreateExecutionStrategy();
+
+        return await strategy.ExecuteAsync(async () =>
+        {
+            await using var transaction = await BeginTransactionAsync(cancellationToken);
+
+            var response = await operation();
+
+            await transaction.CommitAsync(cancellationToken);
+
+            return response;
+        });
     }
 
     public async Task<IApplicationDbContextTransaction> BeginTransactionAsync(

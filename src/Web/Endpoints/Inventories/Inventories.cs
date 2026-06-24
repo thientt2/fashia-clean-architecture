@@ -16,6 +16,7 @@ using Fashia.Domain.Constants;
 using Fashia.Domain.Enums;
 using Fashia.Web.Endpoints.Inventories.Requests;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Fashia.Web.Endpoints.Inventories;
 
@@ -29,39 +30,38 @@ public class Inventories : IEndpointGroup
         groupBuilder.MapGet(GetInventoryTransactionHistory, "transactions");
 
         groupBuilder
-            .MapPost(InitializeInventory, "initialize")
-            .RequireAuthorization(Policies.CanManageBranchInventories);
+            .MapPost(InitializeInventory, "{branchId:int}/initialize")
+            .RequireAuthorization();
         groupBuilder
-            .MapPost(IncreaseInventoryStock, "increase")
-            .RequireAuthorization(Policies.CanManageBranchInventories);
+            .MapPost(IncreaseInventoryStock, "{branchId:int}/increase")
+            .RequireAuthorization();
         groupBuilder
-            .MapPost(DecreaseInventoryStock, "decrease")
-            .RequireAuthorization(Policies.CanManageBranchInventories);
+            .MapPost(DecreaseInventoryStock, "{branchId:int}/decrease")
+            .RequireAuthorization();
+        groupBuilder.MapPost(AdjustInventoryStock, "{branchId:int}/adjust").RequireAuthorization();
         groupBuilder
-            .MapPost(AdjustInventoryStock, "adjust")
-            .RequireAuthorization(Policies.CanManageBranchInventories);
+            .MapPost(
+                TransferInventoryStock,
+                "{sourceBranchId:int}/transfer/{destinationBranchId:int}"
+            )
+            .RequireAuthorization();
         groupBuilder
-            .MapPost(TransferInventoryStock, "transfer")
-            .RequireAuthorization(Policies.CanManageBranchInventories);
+            .MapPost(ReserveInventoryStock, "{branchId:int}/reserve")
+            .RequireAuthorization();
         groupBuilder
-            .MapPost(ReserveInventoryStock, "reserve")
-            .RequireAuthorization(Policies.CanManageBranchInventories);
+            .MapPost(ReleaseReservedInventory, "{branchId:int}/release-reservation")
+            .RequireAuthorization();
         groupBuilder
-            .MapPost(ReleaseReservedInventory, "release-reservation")
-            .RequireAuthorization(Policies.CanManageBranchInventories);
-        groupBuilder
-            .MapPost(CommitReservedInventory, "commit-reservation")
-            .RequireAuthorization(Policies.CanManageBranchInventories);
-        groupBuilder
-            .MapPost(ReturnInventoryStock, "return")
-            .RequireAuthorization(Policies.CanManageBranchInventories);
+            .MapPost(CommitReservedInventory, "{branchId:int}/commit-reservation")
+            .RequireAuthorization();
+        groupBuilder.MapPost(ReturnInventoryStock, "{branchId:int}/return").RequireAuthorization();
     }
 
     [EndpointSummary("Get Inventory by Branch")]
     [EndpointDescription("Retrieves inventory rows for a branch.")]
     public static async Task<Ok<IReadOnlyCollection<InventoryDto>>> GetInventoryByBranch(
-        ISender sender,
-        int branchId,
+        [FromServices] ISender sender,
+        [FromRoute] int branchId,
         CancellationToken cancellationToken
     )
     {
@@ -76,8 +76,8 @@ public class Inventories : IEndpointGroup
     [EndpointSummary("Get Inventory by Product")]
     [EndpointDescription("Retrieves inventory rows across branches for a product.")]
     public static async Task<Ok<IReadOnlyCollection<InventoryDto>>> GetInventoryByProduct(
-        ISender sender,
-        int productId,
+        [FromServices] ISender sender,
+        [FromRoute] int productId,
         CancellationToken cancellationToken
     )
     {
@@ -90,9 +90,11 @@ public class Inventories : IEndpointGroup
     }
 
     [EndpointSummary("Get Low Stock Inventory")]
-    [EndpointDescription("Retrieves inventory rows with available stock at or below the v1 threshold.")]
+    [EndpointDescription(
+        "Retrieves inventory rows with available stock at or below the v1 threshold."
+    )]
     public static async Task<Ok<IReadOnlyCollection<InventoryDto>>> GetLowStockInventory(
-        ISender sender,
+        [FromServices] ISender sender,
         CancellationToken cancellationToken
     )
     {
@@ -104,15 +106,15 @@ public class Inventories : IEndpointGroup
     [EndpointSummary("Get Inventory Transaction History")]
     [EndpointDescription("Retrieves paged inventory transactions with optional filters.")]
     public static async Task<Ok<InventoryTransactionHistoryResult>> GetInventoryTransactionHistory(
-        ISender sender,
-        int? branchId,
-        int? productVariantId,
-        InventoryTransactionType? type,
-        int? orderId,
-        DateTimeOffset? from,
-        DateTimeOffset? to,
-        int pageNumber,
-        int pageSize,
+        [FromServices] ISender sender,
+        [FromQuery] int? branchId,
+        [FromQuery] int? productVariantId,
+        [FromQuery] InventoryTransactionType? type,
+        [FromQuery] int? orderId,
+        [FromQuery] DateTimeOffset? from,
+        [FromQuery] DateTimeOffset? to,
+        [FromQuery] int pageNumber,
+        [FromQuery] int pageSize,
         CancellationToken cancellationToken
     )
     {
@@ -137,15 +139,16 @@ public class Inventories : IEndpointGroup
     [EndpointSummary("Initialize Inventory")]
     [EndpointDescription("Initializes inventory for a branch and product variant.")]
     public static async Task<NoContent> InitializeInventory(
-        ISender sender,
-        InventoryStockRequest request,
+        [FromServices] ISender sender,
+        [FromRoute] int branchId,
+        [FromBody] InventoryStockRequest request,
         CancellationToken cancellationToken
     )
     {
         await sender.Send(
             new InitializeInventoryCommand
             {
-                BranchId = request.BranchId,
+                BranchId = branchId,
                 ProductVariantId = request.ProductVariantId,
                 Quantity = request.Quantity,
                 Note = request.Note,
@@ -159,15 +162,16 @@ public class Inventories : IEndpointGroup
     [EndpointSummary("Increase Inventory Stock")]
     [EndpointDescription("Increases stock for an existing branch inventory row.")]
     public static async Task<NoContent> IncreaseInventoryStock(
-        ISender sender,
-        InventoryStockRequest request,
+        [FromRoute] int branchId,
+        [FromServices] ISender sender,
+        [FromBody] InventoryStockRequest request,
         CancellationToken cancellationToken
     )
     {
         await sender.Send(
             new IncreaseInventoryStockCommand
             {
-                BranchId = request.BranchId,
+                BranchId = branchId,
                 ProductVariantId = request.ProductVariantId,
                 Quantity = request.Quantity,
                 Note = request.Note,
@@ -181,15 +185,16 @@ public class Inventories : IEndpointGroup
     [EndpointSummary("Decrease Inventory Stock")]
     [EndpointDescription("Decreases available stock for an existing branch inventory row.")]
     public static async Task<NoContent> DecreaseInventoryStock(
-        ISender sender,
-        InventoryStockRequest request,
+        [FromRoute] int branchId,
+        [FromServices] ISender sender,
+        [FromBody] InventoryStockRequest request,
         CancellationToken cancellationToken
     )
     {
         await sender.Send(
             new DecreaseInventoryStockCommand
             {
-                BranchId = request.BranchId,
+                BranchId = branchId,
                 ProductVariantId = request.ProductVariantId,
                 Quantity = request.Quantity,
                 Note = request.Note,
@@ -203,15 +208,16 @@ public class Inventories : IEndpointGroup
     [EndpointSummary("Adjust Inventory Stock")]
     [EndpointDescription("Sets on-hand stock for an existing branch inventory row.")]
     public static async Task<NoContent> AdjustInventoryStock(
-        ISender sender,
-        InventoryStockRequest request,
+        [FromRoute] int branchId,
+        [FromServices] ISender sender,
+        [FromBody] InventoryStockRequest request,
         CancellationToken cancellationToken
     )
     {
         await sender.Send(
             new AdjustInventoryStockCommand
             {
-                BranchId = request.BranchId,
+                BranchId = branchId,
                 ProductVariantId = request.ProductVariantId,
                 Quantity = request.Quantity,
                 Note = request.Note,
@@ -225,16 +231,18 @@ public class Inventories : IEndpointGroup
     [EndpointSummary("Transfer Inventory Stock")]
     [EndpointDescription("Transfers available stock between branches.")]
     public static async Task<NoContent> TransferInventoryStock(
-        ISender sender,
-        TransferInventoryStockRequest request,
+        [FromRoute] int sourceBranchId,
+        [FromRoute] int destinationBranchId,
+        [FromServices] ISender sender,
+        [FromBody] TransferInventoryStockRequest request,
         CancellationToken cancellationToken
     )
     {
         await sender.Send(
             new TransferInventoryStockCommand
             {
-                SourceBranchId = request.SourceBranchId,
-                DestinationBranchId = request.DestinationBranchId,
+                SourceBranchId = sourceBranchId,
+                DestinationBranchId = destinationBranchId,
                 ProductVariantId = request.ProductVariantId,
                 Quantity = request.Quantity,
                 Note = request.Note,
@@ -248,15 +256,16 @@ public class Inventories : IEndpointGroup
     [EndpointSummary("Reserve Inventory Stock")]
     [EndpointDescription("Reserves available stock for an order.")]
     public static async Task<NoContent> ReserveInventoryStock(
-        ISender sender,
-        InventoryReservationRequest request,
+        [FromRoute] int branchId,
+        [FromServices] ISender sender,
+        [FromBody] InventoryReservationRequest request,
         CancellationToken cancellationToken
     )
     {
         await sender.Send(
             new ReserveInventoryStockCommand
             {
-                BranchId = request.BranchId,
+                BranchId = branchId,
                 ProductVariantId = request.ProductVariantId,
                 OrderId = request.OrderId,
                 Quantity = request.Quantity,
@@ -271,15 +280,16 @@ public class Inventories : IEndpointGroup
     [EndpointSummary("Release Reserved Inventory")]
     [EndpointDescription("Releases reserved stock for an order.")]
     public static async Task<NoContent> ReleaseReservedInventory(
-        ISender sender,
-        InventoryReservationRequest request,
+        [FromRoute] int branchId,
+        [FromServices] ISender sender,
+        [FromBody] InventoryReservationRequest request,
         CancellationToken cancellationToken
     )
     {
         await sender.Send(
             new ReleaseReservedInventoryCommand
             {
-                BranchId = request.BranchId,
+                BranchId = branchId,
                 ProductVariantId = request.ProductVariantId,
                 OrderId = request.OrderId,
                 Quantity = request.Quantity,
@@ -294,15 +304,16 @@ public class Inventories : IEndpointGroup
     [EndpointSummary("Commit Reserved Inventory")]
     [EndpointDescription("Commits reserved stock for an order.")]
     public static async Task<NoContent> CommitReservedInventory(
-        ISender sender,
-        InventoryReservationRequest request,
+        [FromRoute] int branchId,
+        [FromServices] ISender sender,
+        [FromBody] InventoryReservationRequest request,
         CancellationToken cancellationToken
     )
     {
         await sender.Send(
             new CommitReservedInventoryCommand
             {
-                BranchId = request.BranchId,
+                BranchId = branchId,
                 ProductVariantId = request.ProductVariantId,
                 OrderId = request.OrderId,
                 Quantity = request.Quantity,
@@ -317,15 +328,16 @@ public class Inventories : IEndpointGroup
     [EndpointSummary("Return Inventory Stock")]
     [EndpointDescription("Returns stock to branch inventory.")]
     public static async Task<NoContent> ReturnInventoryStock(
-        ISender sender,
-        ReturnInventoryStockRequest request,
+        [FromRoute] int branchId,
+        [FromServices] ISender sender,
+        [FromBody] ReturnInventoryStockRequest request,
         CancellationToken cancellationToken
     )
     {
         await sender.Send(
             new ReturnInventoryStockCommand
             {
-                BranchId = request.BranchId,
+                BranchId = branchId,
                 ProductVariantId = request.ProductVariantId,
                 OrderId = request.OrderId,
                 Quantity = request.Quantity,

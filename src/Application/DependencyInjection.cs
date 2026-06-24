@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using Fashia.Application.Common.Behaviours;
 using Fashia.Application.Common.Interfaces;
+using Fashia.Application.Common.Options;
 using Fashia.Application.Common.Security;
 using Fashia.Application.Inventories.Services;
 using Microsoft.Extensions.Hosting;
@@ -13,6 +14,8 @@ public static class DependencyInjection
     {
         builder.Services.AddScoped<IBranchAuthorizationService, BranchAuthorizationService>();
         builder.Services.AddScoped<IInventoryMatrixInitializer, InventoryMatrixInitializer>();
+        builder.Services.Configure<IdempotencyOptions>(
+            builder.Configuration.GetSection(IdempotencyOptions.SectionName));
         builder.Services.AddAutoMapper(cfg => cfg.AddMaps(Assembly.GetExecutingAssembly()));
 
         builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
@@ -23,9 +26,10 @@ public static class DependencyInjection
             cfg.AddOpenRequestPreProcessor(typeof(LoggingBehaviour<>));
             cfg.AddOpenBehavior(typeof(UnhandledExceptionBehaviour<,>));
             cfg.AddOpenBehavior(typeof(AuthorizationBehaviour<,>));
+            cfg.AddOpenBehavior(typeof(TransactionBehaviour<,>));
+            cfg.AddOpenBehavior(typeof(IdempotencyBehaviour<,>));
             cfg.AddOpenBehavior(typeof(ValidationBehaviour<,>));
             cfg.AddOpenBehavior(typeof(PerformanceBehaviour<,>));
-            cfg.AddOpenBehavior(typeof(TransactionBehaviour<,>));
         });
     }
 }

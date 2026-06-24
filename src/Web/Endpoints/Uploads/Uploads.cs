@@ -11,17 +11,14 @@ public class Uploads : IEndpointGroup
 {
     public static void Map(RouteGroupBuilder groupBuilder)
     {
-        groupBuilder
-            .MapPost(UploadImage, "images")
-            .DisableAntiforgery()
-            .RequireAuthorization(Policies.CanManageProducts);
+        groupBuilder.MapPost(UploadImage, "images").DisableAntiforgery().RequireAuthorization();
     }
 
     [EndpointSummary("Upload a images")]
     [EndpointDescription("Uploads a image and returns the URL of the uploaded file.")]
     public static async Task<Ok<UploadImageResult>> UploadImage(
-        ISender sender,
-        IFormFile file,
+        [FromServices] ISender sender,
+        [FromForm] IFormFile file,
         [FromForm] string folder,
         CancellationToken cancellationToken
     )

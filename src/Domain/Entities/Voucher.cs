@@ -22,11 +22,22 @@ public class Voucher : BaseAuditableEntity
 
     public VoucherType VoucherType { get; private set; }
 
+    public int? ProductId { get; private set; }
+    public Product? Product { get; private set; }
+
+    public int? CategoryId { get; private set; }
+    public Category? Category { get; private set; }
+
+    public int? BrandId { get; private set; }
+    public Brand? Brand { get; private set; }
+
     public VoucherStatus Status { get; private set; }
 
     public Display Display { get; private set; }
 
     public int QuantityPerUser { get; private set; }
+
+    public uint Version { get; private set; }
 
     private Voucher()
     {
@@ -44,17 +55,21 @@ public class Voucher : BaseAuditableEntity
         int quantityPerUser = 1,
         int usageLimit = 0,
         int minOrderAmount = 0,
-        int maxDiscountAmount = 0
+        int maxDiscountAmount = 0,
+        int? productId = null,
+        int? categoryId = null,
+        int? brandId = null
     )
     {
         SetCode(code);
         SetDiscountType(discountType);
-        SetDiscountAmount(discountAmount);
         SetDateRange(validFrom, validUntil);
         SetUsageLimit(usageLimit);
         SetMinOrderAmount(minOrderAmount);
         SetMaxDiscountAmount(maxDiscountAmount);
+        SetDiscount(discountType, discountAmount);
         SetVoucherType(voucherType);
+        SetTargets(productId, categoryId, brandId);
         SetDisplay(display);
         SetQuantityPerUser(quantityPerUser);
         Status = VoucherStatus.Active;
@@ -65,17 +80,9 @@ public class Voucher : BaseAuditableEntity
         SetCode(code);
     }
 
-    public void UpdateDiscountAmount(int discountAmount)
+    public void UpdateDiscount(DiscountType discountType, int discountAmount)
     {
-        SetDiscountAmount(discountAmount);
-    }
-
-    public void UpdateDiscountType(DiscountType discountType)
-    {
-        SetDiscountType(discountType);
-
-        if (DiscountType == DiscountType.Percentage && DiscountAmount > 100)
-            throw new InvalidOperationException("Percentage discount cannot exceed 100.");
+        SetDiscount(discountType, discountAmount);
     }
 
     public void UpdateMinOrderAmount(int minOrderAmount)
@@ -100,7 +107,18 @@ public class Voucher : BaseAuditableEntity
 
     public void UpdateVoucherType(VoucherType voucherType)
     {
+        UpdateApplicability(voucherType, ProductId, CategoryId, BrandId);
+    }
+
+    public void UpdateApplicability(
+        VoucherType voucherType,
+        int? productId,
+        int? categoryId,
+        int? brandId
+    )
+    {
         SetVoucherType(voucherType);
+        SetTargets(productId, categoryId, brandId);
     }
 
     public void UpdateDisplay(Display display)
@@ -173,6 +191,28 @@ public class Voucher : BaseAuditableEntity
         UsedCount++;
     }
 
+    public bool IsApplicableTo(
+        IEnumerable<int> productIds,
+        IEnumerable<int> categoryIds,
+        IEnumerable<int> brandIds
+    )
+    {
+        ArgumentNullException.ThrowIfNull(productIds);
+        ArgumentNullException.ThrowIfNull(categoryIds);
+        ArgumentNullException.ThrowIfNull(brandIds);
+
+        return VoucherType switch
+        {
+            VoucherType.All => true,
+            VoucherType.ProductSpecific => ProductId.HasValue
+                && productIds.Contains(ProductId.Value),
+            VoucherType.CategorySpecific => CategoryId.HasValue
+                && categoryIds.Contains(CategoryId.Value),
+            VoucherType.BrandSpecific => BrandId.HasValue && brandIds.Contains(BrandId.Value),
+            _ => false,
+        };
+    }
+
     private void SetCode(string code)
     {
         if (string.IsNullOrWhiteSpace(code))
@@ -241,6 +281,41 @@ public class Voucher : BaseAuditableEntity
         VoucherType = voucherType;
     }
 
+    private void SetTargets(int? productId, int? categoryId, int? brandId)
+    {
+        EnsurePositiveTarget(productId, nameof(productId));
+        EnsurePositiveTarget(categoryId, nameof(categoryId));
+        EnsurePositiveTarget(brandId, nameof(brandId));
+
+        var valid = VoucherType switch
+        {
+            VoucherType.All => productId is null && categoryId is null && brandId is null,
+            VoucherType.ProductSpecific => productId.HasValue
+                && categoryId is null
+                && brandId is null,
+            VoucherType.CategorySpecific => productId is null
+                && categoryId.HasValue
+                && brandId is null,
+            VoucherType.BrandSpecific => productId is null
+                && categoryId is null
+                && brandId.HasValue,
+            _ => false,
+        };
+
+        if (!valid)
+            throw new ArgumentException("Voucher target does not match voucher type.");
+
+        ProductId = productId;
+        CategoryId = categoryId;
+        BrandId = brandId;
+    }
+
+    private static void EnsurePositiveTarget(int? targetId, string paramName)
+    {
+        if (targetId <= 0)
+            throw new ArgumentException("Voucher target id must be greater than zero.", paramName);
+    }
+
     private void SetDisplay(Display display)
     {
         if (!Enum.IsDefined(typeof(Display), display))
@@ -255,5 +330,31 @@ public class Voucher : BaseAuditableEntity
             throw new ArgumentException("Quantity per user cannot be negative.");
 
         QuantityPerUser = quantityPerUser;
+    }
+
+    private static void ValidateDiscount(DiscountType discountType, int discountAmount)
+    {
+        if (!Enum.IsDefined(typeof(DiscountType), discountType))
+            throw new ArgumentException("Invalid discount type.", nameof(discountType));
+
+        if (discountAmount <= 0)
+            throw new ArgumentException(
+                "Discount amount must be greater than zero.",
+                nameof(discountAmount)
+            );
+
+        if (discountType == DiscountType.Percentage && discountAmount > 100)
+            throw new ArgumentException(
+                "Percentage discount cannot exceed 100.",
+                nameof(discountAmount)
+            );
+    }
+
+    private void SetDiscount(DiscountType discountType, int discountAmount)
+    {
+        ValidateDiscount(discountType, discountAmount);
+
+        DiscountType = discountType;
+        DiscountAmount = discountAmount;
     }
 }

@@ -2,6 +2,9 @@ using System.Net;
 using System.Net.Http.Json;
 using Fashia.Application.Common.Exceptions;
 using Fashia.Application.Products.Commands.CreateProduct;
+using Fashia.Application.Products.Queries.GetProductById;
+using Fashia.Application.Products.Queries.GetProducts;
+using Fashia.Domain.Constants;
 using Fashia.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,7 +15,7 @@ public class CreateProductTests : TestBase
     [Test]
     public async Task ShouldCreateProduct()
     {
-        await TestApp.RunAsDefaultUserAsync();
+        await TestApp.RunAsAdministratorAsync();
         var seed = await AddProductSeedDataAsync();
 
         var command = CreateValidCommand(seed);
@@ -43,7 +46,7 @@ public class CreateProductTests : TestBase
     [Test]
     public async Task ShouldCreateProductWithMultipleVariantsUsingDefaultDiscount()
     {
-        await TestApp.RunAsDefaultUserAsync();
+        await TestApp.RunAsAdministratorAsync();
         var seed = await AddProductSeedDataAsync();
         var secondVariantImage = CreateUploadedFile("variant-2");
         await TestApp.AddAsync(secondVariantImage);
@@ -80,7 +83,7 @@ public class CreateProductTests : TestBase
     [Test]
     public async Task ShouldRequireName()
     {
-        await TestApp.RunAsDefaultUserAsync();
+        await TestApp.RunAsAdministratorAsync();
         var seed = await AddProductSeedDataAsync();
         var command = CreateValidCommand(seed) with { Name = string.Empty };
 
@@ -94,7 +97,7 @@ public class CreateProductTests : TestBase
     [Test]
     public async Task ShouldLimitNameLength()
     {
-        await TestApp.RunAsDefaultUserAsync();
+        await TestApp.RunAsAdministratorAsync();
         var seed = await AddProductSeedDataAsync();
         var command = CreateValidCommand(seed) with { Name = new string('a', 201) };
 
@@ -108,7 +111,7 @@ public class CreateProductTests : TestBase
     [Test]
     public async Task ShouldRequireOriginalPriceGreaterThanZero()
     {
-        await TestApp.RunAsDefaultUserAsync();
+        await TestApp.RunAsAdministratorAsync();
         var seed = await AddProductSeedDataAsync();
         var command = CreateValidCommand(seed) with
         {
@@ -133,7 +136,7 @@ public class CreateProductTests : TestBase
     [Test]
     public async Task ShouldReturnValidationForNullCollections()
     {
-        await TestApp.RunAsDefaultUserAsync();
+        await TestApp.RunAsAdministratorAsync();
         var seed = await AddProductSeedDataAsync();
         var command = CreateValidCommand(seed) with
         {
@@ -161,10 +164,10 @@ public class CreateProductTests : TestBase
     [Test]
     public async Task ShouldRejectUploadedImagesOwnedByAnotherUser()
     {
-        await TestApp.RunAsUserAsync("owner@local", "Testing1234!", []);
+        await TestApp.RunAsAdministratorAsync();
         var seed = await AddProductSeedDataAsync();
 
-        await TestApp.RunAsUserAsync("other@local", "Testing1234!", []);
+        await TestApp.RunAsUserAsync("other-admin@local", "Testing1234!", [Roles.Administrator]);
         var command = CreateValidCommand(seed);
 
         var exception = await Should.ThrowAsync<ValidationException>(() =>
@@ -177,7 +180,7 @@ public class CreateProductTests : TestBase
     [Test]
     public async Task ShouldMarkUploadedFilesAsUsedAfterSuccessfulCreation()
     {
-        await TestApp.RunAsDefaultUserAsync();
+        await TestApp.RunAsAdministratorAsync();
         var seed = await AddProductSeedDataAsync();
 
         await TestApp.SendAsync(CreateValidCommand(seed));
@@ -189,6 +192,75 @@ public class CreateProductTests : TestBase
         productImage!.IsUsed.ShouldBeTrue();
         variantImage.ShouldNotBeNull();
         variantImage!.IsUsed.ShouldBeTrue();
+    }
+
+    [Test]
+    public async Task ShouldReturnProductDetailDiscountPercentageAndFinalPrice()
+    {
+        await TestApp.RunAsAdministratorAsync();
+        var seed = await AddProductSeedDataAsync();
+        var productId = await TestApp.SendAsync(CreateValidCommand(seed));
+
+        await TestApp.ExecuteDbContextAsync(context =>
+            context.Database.ExecuteSqlInterpolatedAsync(
+                $"""
+                UPDATE "ProductVariants"
+                SET "DiscountPercentage" = {1000}
+                WHERE "ProductId" = {productId}
+                """
+            )
+        );
+
+        var result = await TestApp.SendAsync(new GetProductByIdQuery(productId));
+        var variant = result.Variants.Single();
+
+        variant.DiscountPercentage.ShouldBe(10);
+        variant.FinalPrice.ShouldBe(108_000);
+    }
+
+    [Test]
+    public async Task ShouldSortProductsByMinimumFinalPrice()
+    {
+        await TestApp.RunAsAdministratorAsync();
+        var firstSeed = await AddProductSeedDataAsync();
+        var expensiveProductId = await TestApp.SendAsync(
+            CreateValidCommand(firstSeed) with { Name = "Expensive Product" }
+        );
+
+        var secondSeed = await AddProductSeedDataAsync("Second");
+        var cheapProductId = await TestApp.SendAsync(
+            CreateValidCommand(secondSeed) with
+            {
+                Name = "Cheap Product",
+                Variants =
+                [
+                    new CreateProductVariantDto
+                    {
+                        OriginalPrice = 50_000,
+                        UploadedImageIds = [secondSeed.VariantImageId],
+                        AttributeValueIds = [secondSeed.AttributeValueId],
+                    },
+                ],
+            }
+        );
+
+        await TestApp.ExecuteDbContextAsync(context =>
+            context.Database.ExecuteSqlInterpolatedAsync(
+                $"""
+                UPDATE "ProductVariants"
+                SET "DiscountPercentage" = {1000}
+                WHERE "ProductId" = {expensiveProductId}
+                """
+            )
+        );
+
+        var result = await TestApp.SendAsync(
+            new GetProductsQuery { SortBy = "price", SortDirection = "asc", PageSize = 10 }
+        );
+
+        var returnedIds = result.Items.Select(x => x.Id).ToList();
+        returnedIds.IndexOf(cheapProductId).ShouldBeLessThan(returnedIds.IndexOf(expensiveProductId));
+        result.Items.Single(x => x.Id == expensiveProductId).MaxDiscountPercentage.ShouldBe(10);
     }
 
     [Test]
@@ -240,15 +312,17 @@ public class CreateProductTests : TestBase
         };
     }
 
-    private static async Task<ProductSeedData> AddProductSeedDataAsync()
+    private static async Task<ProductSeedData> AddProductSeedDataAsync(string suffix = "")
     {
-        var category = new Category("Shoes");
+        var uniqueSuffix = string.IsNullOrWhiteSpace(suffix) ? Guid.NewGuid().ToString("N") : suffix;
+
+        var category = new Category($"Shoes {uniqueSuffix}");
         await TestApp.AddAsync(category);
 
-        var brand = new Brand("Contoso", "Leading brand in sportswear") { Id = 1 };
+        var brand = new Brand($"Contoso {uniqueSuffix}", "Leading brand in sportswear");
         await TestApp.AddAsync(brand);
 
-        var attribute = new ProductAttribute("Size");
+        var attribute = new ProductAttribute($"Size {uniqueSuffix}");
         await TestApp.AddAsync(attribute);
 
         var attributeValue = new ProductAttributeValue(attribute.Id, "42");

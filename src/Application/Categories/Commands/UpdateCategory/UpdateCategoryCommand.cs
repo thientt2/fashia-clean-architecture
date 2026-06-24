@@ -1,11 +1,14 @@
 using System.Text.Json.Serialization;
 using Fashia.Application.Common.Interfaces;
+using Fashia.Application.Common.Security;
 using Fashia.Domain.Common;
+using Fashia.Domain.Constants;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fashia.Application.Categories.Commands.UpdateCategory;
 
+[Authorize(Policy = Policies.UpdateCategories)]
 public record UpdateCategoryCommand : IRequest
 {
     [JsonIgnore]
@@ -31,8 +34,10 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
 
     public async Task Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
     {
-        var category = await _context.Categories
-            .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
+        var category = await _context.Categories.FirstOrDefaultAsync(
+            x => x.Id == request.Id,
+            cancellationToken
+        );
 
         if (category is null)
             throw new InvalidOperationException("Category not found.");
@@ -42,8 +47,10 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
             if (request.ParentId.Value == request.Id)
                 throw new InvalidOperationException("Category cannot be parent of itself.");
 
-            var parentExists = await _context.Categories
-                .AnyAsync(x => x.Id == request.ParentId.Value, cancellationToken);
+            var parentExists = await _context.Categories.AnyAsync(
+                x => x.Id == request.ParentId.Value,
+                cancellationToken
+            );
 
             if (!parentExists)
                 throw new InvalidOperationException("Parent category does not exist.");
@@ -51,8 +58,10 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
 
         var newSlug = SlugGenerator.Generate(request.Name);
 
-        var slugExists = await _context.Categories
-            .AnyAsync(x => x.Id != request.Id && x.Slug == newSlug, cancellationToken);
+        var slugExists = await _context.Categories.AnyAsync(
+            x => x.Id != request.Id && x.Slug == newSlug,
+            cancellationToken
+        );
 
         if (slugExists)
             throw new InvalidOperationException("Category slug already exists.");
